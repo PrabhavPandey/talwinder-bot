@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Talwinder - Grapevine Idea Repository</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #2d3748; margin-bottom: 20px; }
+    
+    .filters { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .filter-group { display: inline-block; margin-right: 15px; }
+    select, button { padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; }
+    button { background: #4299e1; color: white; border: none; cursor: pointer; }
+    button:hover { background: #3182ce; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 4px solid #cbd5e0; }
+    .card.sponsored { border-top-color: #48bb78; }
+    .card.rejected { border-top-color: #e53e3e; }
+    .card.evaluating { border-top-color: #ecc94b; }
+
+    .card h3 { margin-top: 0; font-size: 18px; color: #2d3748; }
+    .meta { font-size: 12px; color: #718096; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .status { font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+    .status.sponsored { background: #c6f6d5; color: #22543d; }
+    .status.pending { background: #bee3f8; color: #2a4365; }
+    
+    .desc { font-size: 14px; color: #4a5568; margin-bottom: 15px; line-height: 1.5; }
+    .feedback { font-size: 13px; background: #f7fafc; padding: 10px; border-radius: 4px; border-left: 3px solid #cbd5e0; }
+    .feedback strong { display: block; margin-bottom: 4px; color: #2d3748; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💡 Talwinder Idea Repository</h1>
+    
+    <div class="filters">
+      <div class="filter-group">
+        <label>Status:</label>
+        <select id="statusFilter">
+          <option value="">All</option>
+          <option value="sponsored">Sponsored</option>
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Category:</label>
+        <select id="categoryFilter">
+          <option value="">All</option>
+          <option value="growth">Growth</option>
+          <option value="engineering">Engineering</option>
+          <option value="product">Product</option>
+          <option value="culture">Culture</option>
+        </select>
+      </div>
+      <button onclick="fetchIdeas()">Filter</button>
+    </div>
+
+    <div id="ideasGrid" class="grid"></div>
+  </div>
+
+  <script>
+    async function fetchIdeas() {
+      const status = document.getElementById('statusFilter').value;
+      const category = document.getElementById('categoryFilter').value;
+      
+      let url = '/api/dashboard/ideas?';
+      if (status) url += `status=${status}&`;
+      if (category) url += `category=${category}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.success) {
+          renderIdeas(data.ideas);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderIdeas(ideas) {
+      const grid = document.getElementById('ideasGrid');
+      grid.innerHTML = '';
+
+      ideas.forEach(idea => {
+        const card = document.createElement('div');
+        card.className = `card ${idea.status}`;
+        
+        card.innerHTML = `
+          <div class="meta">
+            <span>${idea.category.toUpperCase()}</span>
+            <span class="status ${idea.status}">${idea.status}</span>
+          </div>
+          <h3>${idea.title || 'Untitled Idea'}</h3>
+          <div class="meta">By: ${idea.user.name} • ${new Date(idea.createdAt).toLocaleDateString()}</div>
+          <p class="desc">${idea.description}</p>
+          
+          ${idea.feedback ? `
+            <div class="feedback">
+              <strong>Talwinder's Take:</strong>
+              ${idea.feedback}
+            </div>
+          ` : ''}
+
+          ${idea.targetExecutionDate ? `
+            <div style="margin-top: 10px; font-size: 12px; color: #e53e3e; font-weight: bold;">
+              🎯 Target: ${idea.targetExecutionDate}
+            </div>
+          ` : ''}
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // Initial load
+    fetchIdeas();
+  </script>
+</body>
+</html>
