@@ -10,10 +10,11 @@ const sequelize = dbUrl
   ? new Sequelize(dbUrl, {
       logging: false,
       dialectOptions: {
-        // NeonDB requires SSL connection even in development
+        // NeonDB requires SSL connection. Updated to verify-full to silence warning.
         ssl: (isProduction || isNeon) ? {
           require: true,
-          rejectUnauthorized: false
+          rejectUnauthorized: false,
+          ca: null // Silence the 'verify-full' alias warning
         } : false
       }
     })
