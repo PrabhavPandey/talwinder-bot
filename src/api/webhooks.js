@@ -22,6 +22,9 @@ router.get('/webhook', (req, res) => {
     } else {
       res.sendStatus(403);
     }
+  } else {
+    // If visited in browser without params, show a friendly message instead of hanging
+    res.status(200).send('Talwinder Webhook is Active! 🚀 (This endpoint is for Meta verification)');
   }
 });
 
