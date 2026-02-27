@@ -51,75 +51,91 @@ router.post('/webhook', async (req, res) => {
     res.status(200).json({ success: true });
 
     // Process message
+    logger.info(`📨 Processing message from ${phoneNumber}: ${text.substring(0, 50)}...`);
     await processIncomingMessage(phoneNumber, text, userName);
 
   } catch (error) {
-    logger.error('Webhook error:', error);
+    logger.error('❌ Webhook error:', error);
     if (!res.headersSent) res.status(200).json({ success: true });
   }
 });
 
 async function processIncomingMessage(phoneNumber, text, userName) {
-  const formattedPhone = metaClient.constructor.formatPhoneNumber(phoneNumber);
+  try {
+    const formattedPhone = metaClient.constructor.formatPhoneNumber(phoneNumber);
+    logger.info(`👤 User: ${userName} (${formattedPhone})`);
 
-  // Get or create user
-  let [user, created] = await db.User.findOrCreate({
-    where: { phoneNumber: formattedPhone },
-    defaults: { name: userName }
-  });
+    // Get or create user
+    let [user, created] = await db.User.findOrCreate({
+      where: { phoneNumber: formattedPhone },
+      defaults: { name: userName }
+    });
 
-  if (!created) {
-    await user.update({ lastInteraction: new Date() });
-  }
+    if (!created) {
+      await user.update({ lastInteraction: new Date() });
+    }
 
-  // Save conversation
-  await db.Conversation.create({
-    userId: user.id,
-    messageType: 'incoming',
-    content: text
-  });
+    // Save conversation
+    await db.Conversation.create({
+      userId: user.id,
+      messageType: 'incoming',
+      content: text
+    });
 
-  // Get context
-  const history = await personalityEngine.getConversationHistory(user.id);
-  const memoryContext = await memoryService.getMemoryContext(user.id);
-  
-  const systemPrompt = `${prompts.systemPrompt}\n\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString()}`;
+    // Get context
+    logger.info('🧠 Fetching context and memory...');
+    const history = await personalityEngine.getConversationHistory(user.id);
+    const memoryContext = await memoryService.getMemoryContext(user.id);
+    
+    const systemPrompt = `${prompts.systemPrompt}\n\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString()}`;
 
-  // Call Gemini
-  let aiResponse = await geminiClient.chatWithTools(
-    systemPrompt,
-    [...history, { role: 'user', content: text }],
-    tools
-  );
-
-  // Handle Tool Loop
-  while (aiResponse.stopReason === 'tool_use') {
-    const toolUses = aiResponse.content.filter(c => c.type === 'tool_use');
-    const toolResults = await Promise.all(toolUses.map(async (tu) => {
-      const content = await toolExecutor.executeTool(tu.name, tu.input, { user });
-      return { name: tu.name, content };
-    }));
-
-    aiResponse = await geminiClient.continueWithToolResults(
+    // Call Gemini
+    logger.info('🤖 Calling Gemini AI...');
+    let aiResponse = await geminiClient.chatWithTools(
       systemPrompt,
-      [...history, { role: 'user', content: text }, { role: 'assistant', content: aiResponse.content }],
-      toolResults,
-      tools,
-      aiResponse._chatInstance
+      [...history, { role: 'user', content: text }],
+      tools
     );
+
+    // Handle Tool Loop
+    while (aiResponse.stopReason === 'tool_use') {
+      logger.info('🛠️ AI requested tool execution');
+      const toolUses = aiResponse.content.filter(c => c.type === 'tool_use');
+      const toolResults = await Promise.all(toolUses.map(async (tu) => {
+        logger.info(`🔧 Executing tool: ${tu.name}`);
+        const content = await toolExecutor.executeTool(tu.name, tu.input, { user });
+        return { name: tu.name, content };
+      }));
+
+      aiResponse = await geminiClient.continueWithToolResults(
+        systemPrompt,
+        [...history, { role: 'user', content: text }, { role: 'assistant', content: aiResponse.content }],
+        toolResults,
+        tools,
+        aiResponse._chatInstance
+      );
+    }
+
+    const finalMessage = aiResponse.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+    logger.info(`📤 Sending response: ${finalMessage.substring(0, 50)}...`);
+    
+    // Send back to WhatsApp
+    const sendResult = await metaClient.sendTextMessage(phoneNumber, finalMessage);
+    if (!sendResult.success) {
+      logger.error('❌ Failed to send WhatsApp message:', sendResult.error);
+    } else {
+      logger.info('✅ Message sent successfully');
+    }
+
+    // Save response
+    await db.Conversation.create({
+      userId: user.id,
+      messageType: 'outgoing',
+      content: finalMessage
+    });
+  } catch (err) {
+    logger.error('❌ Error in processIncomingMessage:', err);
   }
-
-  const finalMessage = aiResponse.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
-  
-  // Send back to WhatsApp
-  await metaClient.sendTextMessage(phoneNumber, finalMessage);
-
-  // Save response
-  await db.Conversation.create({
-    userId: user.id,
-    messageType: 'outgoing',
-    content: finalMessage
-  });
 }
 
 module.exports = router;
