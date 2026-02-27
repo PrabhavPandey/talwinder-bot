@@ -4,7 +4,7 @@ const logger = require('./logger');
 class MetaClient {
   constructor() {
     this.phoneNumberId = process.env.META_PHONE_NUMBER_ID;
-    this.accessToken = process.env.META_ACCESS_TOKEN;
+    this.accessToken = process.env.META_ACCESS_TOKEN ? process.env.META_ACCESS_TOKEN.trim() : null;
     this.apiVersion = process.env.META_API_VERSION || 'v21.0';
     this.baseUrl = `https://graph.facebook.com/${this.apiVersion}/${this.phoneNumberId}`;
   }
