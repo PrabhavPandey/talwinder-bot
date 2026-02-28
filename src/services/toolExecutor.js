@@ -1,13 +1,39 @@
 const ideaService = require('./ideaService');
 const logger = require('../utils/logger');
 const db = require('../models');
+const metaClient = require('../utils/metaClient');
 
 class ToolExecutor {
   async executeTool(name, input, context) {
-    const { user } = context;
+    const { user, messageId, phoneNumber } = context;
 
     try {
       switch (name) {
+        case 'send_reaction':
+          if (!messageId) {
+            return { success: false, error: "No messageId available to react to." };
+          }
+          // Use user's phone number if available in context, otherwise try to fetch from user object
+          const recipientPhone = phoneNumber || user.phoneNumber;
+          if (!recipientPhone) {
+             return { success: false, error: "No phone number available for reaction." };
+          }
+          
+          await metaClient.reactToMessage(recipientPhone, messageId, input.emoji);
+          return { success: true, reacted: input.emoji };
+
+        case 'google_search':
+          // Placeholder for Google Search - would require SERP API key
+          logger.info(`🔍 Mock Search Query: ${input.query}`);
+          return {
+            success: true,
+            results: [
+              { title: "Market Trend Report 2025", snippet: "The market is shifting towards AI-driven productivity tools..." },
+              { title: "Competitor Analysis", snippet: "Key competitors include..." }
+            ],
+            note: "Real Google Search requires an API key (e.g., Serper/Google). Using mock data."
+          };
+
         case 'submit_idea':
           const idea = await ideaService.createIdea(user.id, input.description, input);
           return {
