@@ -16,6 +16,8 @@ class MetaClient {
     }
 
     try {
+      logger.info(`🔑 Using Meta Token: ${this.accessToken ? this.accessToken.substring(0, 10) + '...' : 'None'}`);
+      
       const response = await axios.post(
         `${this.baseUrl}/messages`,
         {
