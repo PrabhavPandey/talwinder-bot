@@ -2,123 +2,1037 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Talwinder - Grapevine Idea Repository</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talwinder — Idea Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { color: #2d3748; margin-bottom: 20px; }
-    
-    .filters { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .filter-group { display: inline-block; margin-right: 15px; }
-    select, button { padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; }
-    button { background: #4299e1; color: white; border: none; cursor: pointer; }
-    button:hover { background: #3182ce; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 4px solid #cbd5e0; }
-    .card.sponsored { border-top-color: #48bb78; }
-    .card.rejected { border-top-color: #e53e3e; }
-    .card.evaluating { border-top-color: #ecc94b; }
+    :root {
+      --bg: #ffffff;
+      --bg-muted: #f9fafb;
+      --bg-card: #ffffff;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --text-light: #9ca3af;
+      --primary: #111827;
+      --primary-light: #374151;
+      --accent: #3b82f6;
+      --accent-light: #eff6ff;
+      --green: #22c55e;
+      --green-bg: #f0fdf4;
+      --green-text: #166534;
+      --yellow: #eab308;
+      --yellow-bg: #fefce8;
+      --yellow-text: #854d0e;
+      --blue: #3b82f6;
+      --blue-bg: #eff6ff;
+      --blue-text: #1e40af;
+      --red: #ef4444;
+      --red-bg: #fef2f2;
+      --red-text: #991b1b;
+      --orange: #f97316;
+      --orange-bg: #fff7ed;
+      --orange-text: #9a3412;
+      --purple: #8b5cf6;
+      --purple-bg: #f5f3ff;
+      --purple-text: #6b21a8;
+      --radius: 8px;
+      --shadow: 0 1px 3px 0 rgba(0,0,0,.06), 0 1px 2px -1px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+    }
 
-    .card h3 { margin-top: 0; font-size: 18px; color: #2d3748; }
-    .meta { font-size: 12px; color: #718096; margin-bottom: 10px; display: flex; justify-content: space-between; }
-    .status { font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-    .status.sponsored { background: #c6f6d5; color: #22543d; }
-    .status.pending { background: #bee3f8; color: #2a4365; }
-    
-    .desc { font-size: 14px; color: #4a5568; margin-bottom: 15px; line-height: 1.5; }
-    .feedback { font-size: 13px; background: #f7fafc; padding: 10px; border-radius: 4px; border-left: 3px solid #cbd5e0; }
-    .feedback strong { display: block; margin-bottom: 4px; color: #2d3748; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-muted);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* === SIDEBAR === */
+    .sidebar {
+      width: 240px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    .sidebar-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      padding: 0 8px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo span { color: var(--text-muted); font-weight: 400; font-size: 13px; display: block; margin-top: 2px; }
+
+    .sidebar-section {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 16px 8px 6px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sidebar-link:hover { background: var(--bg-muted); color: var(--text); }
+    .sidebar-link.active { background: var(--bg-muted); color: var(--text); font-weight: 500; }
+
+    .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* === MAIN === */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 32px;
+      max-width: 1200px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* === STAT CARDS === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .stat-card .stat-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* === TABS === */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+    /* === FILTERS === */
+    .filters-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .filters-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .filters-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      border-color: var(--text-light);
+    }
+
+    /* === IDEA TABLE === */
+    .ideas-section h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .ideas-section .count {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .ideas-table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .ideas-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .ideas-table thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-muted);
+    }
+
+    .ideas-table tbody tr {
+      border-bottom: 1px solid var(--border-light);
+      transition: background 0.1s;
+    }
+
+    .ideas-table tbody tr:last-child { border-bottom: none; }
+    .ideas-table tbody tr:hover { background: var(--bg-muted); }
+
+    .ideas-table td {
+      padding: 14px 16px;
+      vertical-align: top;
+    }
+
+    .idea-title {
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .idea-desc {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    /* === BADGES === */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge-sponsored { background: var(--green-bg); color: var(--green-text); }
+    .badge-evaluating { background: var(--yellow-bg); color: var(--yellow-text); }
+    .badge-pending { background: var(--blue-bg); color: var(--blue-text); }
+    .badge-rejected { background: var(--red-bg); color: var(--red-text); }
+    .badge-not_now { background: var(--orange-bg); color: var(--orange-text); }
+    .badge-executed { background: var(--purple-bg); color: var(--purple-text); }
+
+    .badge-category {
+      background: var(--bg-muted);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-priority-critical { background: var(--red-bg); color: var(--red-text); }
+    .badge-priority-high { background: var(--orange-bg); color: var(--orange-text); }
+    .badge-priority-medium { background: var(--yellow-bg); color: var(--yellow-text); }
+    .badge-priority-low { background: var(--bg-muted); color: var(--text-muted); }
+
+    /* === SCORES === */
+    .scores {
+      display: flex;
+      gap: 6px;
+    }
+
+    .score-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-muted);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .score-pill strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* === USER PAGE === */
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .user-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .user-card .user-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .user-card .user-phone {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .user-card .user-stats {
+      display: flex;
+      gap: 16px;
+    }
+
+    .user-card .user-stat-item {
+      text-align: center;
+    }
+
+    .user-card .user-stat-item .val {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .user-card .user-stat-item .lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* === EMPTY === */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .empty-state p { font-size: 13px; }
+
+    /* === DETAIL MODAL === */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 50;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--bg);
+      border-radius: 12px;
+      width: 560px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,.15);
+    }
+
+    .modal h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .modal .modal-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .modal .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 13px;
+    }
+
+    .modal .detail-row .label { color: var(--text-muted); }
+    .modal .detail-row .value { font-weight: 500; text-align: right; max-width: 60%; }
+
+    .modal .feedback-box {
+      background: var(--bg-muted);
+      border-radius: 6px;
+      padding: 14px;
+      margin-top: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .modal .feedback-box strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .modal-close {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0;
+      line-height: 1;
+    }
+
+    .modal-close:hover { color: var(--text); }
+
+    /* === LOADING === */
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 20px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .filters-row { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>💡 Talwinder Idea Repository</h1>
-    
-    <div class="filters">
-      <div class="filter-group">
-        <label>Status:</label>
-        <select id="statusFilter">
-          <option value="">All</option>
-          <option value="sponsored">Sponsored</option>
-          <option value="pending">Pending</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Category:</label>
-        <select id="categoryFilter">
-          <option value="">All</option>
-          <option value="growth">Growth</option>
-          <option value="engineering">Engineering</option>
-          <option value="product">Product</option>
-          <option value="culture">Culture</option>
-        </select>
-      </div>
-      <button onclick="fetchIdeas()">Filter</button>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      Talwinder
+      <span>Idea Dashboard</span>
     </div>
 
-    <div id="ideasGrid" class="grid"></div>
+    <div class="sidebar-section">Dashboard</div>
+    <a class="sidebar-link active" data-page="ideas" onclick="showPage('ideas')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
+      Ideas
+    </a>
+    <a class="sidebar-link" data-page="users" onclick="showPage('users')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
+      Users
+    </a>
+
+    <div class="sidebar-section">Filters</div>
+    <a class="sidebar-link" onclick="applyQuickFilter('status', 'sponsored')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+      Sponsored
+    </a>
+    <a class="sidebar-link" onclick="applyQuickFilter('status', 'evaluating')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+      Evaluating
+    </a>
+    <a class="sidebar-link" onclick="applyQuickFilter('status', 'pending')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+      Pending
+    </a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- === IDEAS PAGE === -->
+    <div id="page-ideas">
+      <div class="page-header">
+        <h1>Ideas Dashboard</h1>
+        <p>Track and manage all ideas submitted through Talwinder</p>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Ideas</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sub">all submissions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sponsored</div>
+          <div class="stat-value" id="stat-sponsored">—</div>
+          <div class="stat-sub">approved ideas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Score</div>
+          <div class="stat-value" id="stat-avg">—</div>
+          <div class="stat-sub">overall quality</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Follow-ups</div>
+          <div class="stat-value" id="stat-followups">—</div>
+          <div class="stat-sub">need check-in</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('ideas-tab')">Ideas</button>
+        <button class="tab" onclick="switchTab('stats-tab')">Stats</button>
+      </div>
+
+      <!-- Ideas Tab -->
+      <div id="ideas-tab">
+        <!-- Filters -->
+        <div class="filters-card">
+          <h3>Filter Ideas</h3>
+          <p>Apply filters to find specific ideas</p>
+          <div class="filters-row">
+            <div class="filter-group">
+              <label>Status</label>
+              <select id="filter-status" onchange="fetchIdeas()">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="evaluating">Evaluating</option>
+                <option value="sponsored">Sponsored</option>
+                <option value="executed">Executed</option>
+                <option value="not_now">Not Now</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Category</label>
+              <select id="filter-category" onchange="fetchIdeas()">
+                <option value="">All Categories</option>
+                <option value="growth">Growth</option>
+                <option value="engineering">Engineering</option>
+                <option value="product">Product</option>
+                <option value="org">Org</option>
+                <option value="culture">Culture</option>
+                <option value="operations">Operations</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Priority</label>
+              <select id="filter-priority" onchange="fetchIdeas()">
+                <option value="">All Priorities</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>User</label>
+              <select id="filter-user" onchange="fetchIdeas()">
+                <option value="">All Users</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ideas Table -->
+        <div class="ideas-section">
+          <h3>Ideas</h3>
+          <div class="count" id="ideas-count">Loading...</div>
+          <div class="ideas-table-wrap">
+            <table class="ideas-table">
+              <thead>
+                <tr>
+                  <th>Idea</th>
+                  <th>Submitted By</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Scores (N / U / A)</th>
+                  <th>Priority</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="ideas-tbody">
+                <tr><td colspan="7" class="loading">Loading ideas...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Tab -->
+      <div id="stats-tab" style="display:none;">
+        <div class="stats-detail" id="stats-detail">
+          <div class="loading">Loading stats...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === USERS PAGE === -->
+    <div id="page-users" style="display:none;">
+      <div class="page-header">
+        <h1>Users</h1>
+        <p>People who have submitted ideas through Talwinder</p>
+      </div>
+      <div class="users-grid" id="users-grid">
+        <div class="loading">Loading users...</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" id="modal-content" onclick="event.stopPropagation()">
+    </div>
   </div>
 
   <script>
+    // ========== STATE ==========
+    let allIdeas = [];
+    let allUsers = [];
+    let statsData = null;
+
+    // ========== INIT ==========
+    async function init() {
+      await Promise.all([fetchStats(), fetchIdeas(), fetchUsers()]);
+    }
+
+    // ========== FETCH STATS ==========
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        const data = await res.json();
+        if (data.success) {
+          statsData = data.stats;
+          renderStats(data.stats);
+        }
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+      }
+    }
+
+    function renderStats(stats) {
+      document.getElementById('stat-total').textContent = stats.total || 0;
+      document.getElementById('stat-sponsored').textContent = stats.byStatus?.sponsored || 0;
+      document.getElementById('stat-avg').textContent = stats.avgScores?.overall || '—';
+      document.getElementById('stat-followups').textContent = stats.pendingFollowUps || 0;
+    }
+
+    // ========== FETCH IDEAS ==========
     async function fetchIdeas() {
-      const status = document.getElementById('statusFilter').value;
-      const category = document.getElementById('categoryFilter').value;
-      
+      const status = document.getElementById('filter-status').value;
+      const category = document.getElementById('filter-category').value;
+      const priority = document.getElementById('filter-priority').value;
+      const userId = document.getElementById('filter-user').value;
+
       let url = '/api/dashboard/ideas?';
       if (status) url += `status=${status}&`;
-      if (category) url += `category=${category}`;
+      if (category) url += `category=${category}&`;
+      if (priority) url += `priority=${priority}&`;
+      if (userId) url += `userId=${userId}&`;
 
       try {
         const res = await fetch(url);
         const data = await res.json();
-        
         if (data.success) {
+          allIdeas = data.ideas;
           renderIdeas(data.ideas);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Ideas fetch error:', err);
+        document.getElementById('ideas-tbody').innerHTML = '<tr><td colspan="7" class="empty-state"><p>Failed to load ideas</p></td></tr>';
       }
     }
 
     function renderIdeas(ideas) {
-      const grid = document.getElementById('ideasGrid');
-      grid.innerHTML = '';
+      const tbody = document.getElementById('ideas-tbody');
+      document.getElementById('ideas-count').textContent = `Showing ${ideas.length} idea${ideas.length !== 1 ? 's' : ''}`;
 
-      ideas.forEach(idea => {
-        const card = document.createElement('div');
-        card.className = `card ${idea.status}`;
-        
-        card.innerHTML = `
-          <div class="meta">
-            <span>${idea.category.toUpperCase()}</span>
-            <span class="status ${idea.status}">${idea.status}</span>
-          </div>
-          <h3>${idea.title || 'Untitled Idea'}</h3>
-          <div class="meta">By: ${idea.user.name} • ${new Date(idea.createdAt).toLocaleDateString()}</div>
-          <p class="desc">${idea.description}</p>
-          
-          ${idea.feedback ? `
-            <div class="feedback">
-              <strong>Talwinder's Take:</strong>
-              ${idea.feedback}
+      if (ideas.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon">💡</div>
+              <h3>No ideas yet</h3>
+              <p>Ideas submitted through Talwinder will appear here</p>
             </div>
-          ` : ''}
+          </td></tr>`;
+        return;
+      }
 
-          ${idea.targetExecutionDate ? `
-            <div style="margin-top: 10px; font-size: 12px; color: #e53e3e; font-weight: bold;">
-              🎯 Target: ${idea.targetExecutionDate}
+      tbody.innerHTML = ideas.map(idea => `
+        <tr onclick="openDetail('${idea.id}')" style="cursor:pointer;">
+          <td>
+            <div class="idea-title">${escapeHtml(idea.title || 'Untitled')}</div>
+            <div class="idea-desc">${escapeHtml((idea.description || '').substring(0, 80))}${(idea.description || '').length > 80 ? '...' : ''}</div>
+          </td>
+          <td style="white-space:nowrap;">${escapeHtml(idea.user?.name || '—')}</td>
+          <td><span class="badge badge-category">${idea.category || '—'}</span></td>
+          <td><span class="badge badge-${idea.status}">${idea.status || '—'}</span></td>
+          <td>
+            <div class="scores">
+              <span class="score-pill"><strong>${idea.noveltyScore || 0}</strong></span>
+              <span class="score-pill"><strong>${idea.utilityScore || 0}</strong></span>
+              <span class="score-pill"><strong>${idea.charterAlignmentScore || 0}</strong></span>
             </div>
-          ` : ''}
-        `;
-        
-        grid.appendChild(card);
+          </td>
+          <td><span class="badge badge-priority-${idea.priority}">${idea.priority || '—'}</span></td>
+          <td style="white-space:nowrap;color:var(--text-muted);font-size:12px;">${formatDate(idea.createdAt)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ========== FETCH USERS ==========
+    async function fetchUsers() {
+      try {
+        const res = await fetch('/api/dashboard/users');
+        const data = await res.json();
+        if (data.success) {
+          allUsers = data.users;
+          populateUserFilter(data.users);
+          renderUsers(data.users);
+        }
+      } catch (err) {
+        console.error('Users fetch error:', err);
+      }
+    }
+
+    function populateUserFilter(users) {
+      const sel = document.getElementById('filter-user');
+      users.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.name || u.phoneNumber;
+        sel.appendChild(opt);
       });
     }
 
-    // Initial load
-    fetchIdeas();
+    function renderUsers(users) {
+      const grid = document.getElementById('users-grid');
+      if (users.length === 0) {
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><h3>No users yet</h3><p>Users will appear when they message Talwinder</p></div>`;
+        return;
+      }
+
+      grid.innerHTML = users.map(u => `
+        <div class="user-card">
+          <div class="user-name">${escapeHtml(u.name || 'Unknown')}</div>
+          <div class="user-phone">${u.phoneNumber ? maskPhone(u.phoneNumber) : '—'}</div>
+          <div class="user-stats">
+            <div class="user-stat-item">
+              <div class="val">${u.totalIdeas || 0}</div>
+              <div class="lbl">Ideas</div>
+            </div>
+            <div class="user-stat-item">
+              <div class="val">${(u.averageIdeaQuality || 0).toFixed ? (u.averageIdeaQuality || 0).toFixed(1) : '0'}</div>
+              <div class="lbl">Avg Score</div>
+            </div>
+            <div class="user-stat-item">
+              <div class="val">${u.lastInteraction ? formatDate(u.lastInteraction) : '—'}</div>
+              <div class="lbl">Last Active</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ========== DETAIL MODAL ==========
+    function openDetail(ideaId) {
+      const idea = allIdeas.find(i => i.id === ideaId);
+      if (!idea) return;
+
+      const modal = document.getElementById('modal-content');
+      modal.innerHTML = `
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h2>${escapeHtml(idea.title || 'Untitled Idea')}</h2>
+        <div class="modal-meta">
+          Submitted by ${escapeHtml(idea.user?.name || '—')} on ${formatDate(idea.createdAt)}
+          &nbsp;&bull;&nbsp;
+          <span class="badge badge-${idea.status}">${idea.status}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">Description</span>
+          <span class="value">${escapeHtml(idea.description || '—')}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Category</span>
+          <span class="value"><span class="badge badge-category">${idea.category}</span></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Priority</span>
+          <span class="value"><span class="badge badge-priority-${idea.priority}">${idea.priority}</span></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Novelty Score</span>
+          <span class="value">${idea.noveltyScore || 0} / 5</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Utility Score</span>
+          <span class="value">${idea.utilityScore || 0} / 5</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Charter Alignment</span>
+          <span class="value">${idea.charterAlignmentScore || 0} / 5</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Overall</span>
+          <span class="value">${idea.qualityRating || 0} / 5</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Executor</span>
+          <span class="value">${escapeHtml(idea.executor || 'TBD')} (${idea.executorType || 'tbd'})</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Sponsor Suggestion</span>
+          <span class="value">${escapeHtml(idea.sponsorSuggestion || '—')}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Follow-up Date</span>
+          <span class="value">${idea.targetExecutionDate || '—'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Follow-up Status</span>
+          <span class="value">${idea.followUpStatus || 'none'}</span>
+        </div>
+
+        ${idea.feedback ? `
+          <div class="feedback-box">
+            <strong>Talwinder's Feedback</strong>
+            ${escapeHtml(idea.feedback)}
+          </div>
+        ` : ''}
+
+        ${idea.alignmentReasoning ? `
+          <div class="feedback-box">
+            <strong>Alignment Reasoning</strong>
+            ${escapeHtml(idea.alignmentReasoning)}
+          </div>
+        ` : ''}
+      `;
+
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    function closeModal(event) {
+      if (event && event.target !== document.getElementById('modal-overlay')) return;
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+
+    // Close on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open');
+    });
+
+    // ========== PAGE NAV ==========
+    function showPage(page) {
+      document.getElementById('page-ideas').style.display = page === 'ideas' ? '' : 'none';
+      document.getElementById('page-users').style.display = page === 'users' ? '' : 'none';
+
+      document.querySelectorAll('.sidebar-link[data-page]').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === page);
+      });
+    }
+
+    function switchTab(tabId) {
+      document.getElementById('ideas-tab').style.display = tabId === 'ideas-tab' ? '' : 'none';
+      document.getElementById('stats-tab').style.display = tabId === 'stats-tab' ? '' : 'none';
+
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (i === 0 && tabId === 'ideas-tab') || (i === 1 && tabId === 'stats-tab'));
+      });
+
+      if (tabId === 'stats-tab' && statsData) {
+        renderStatsDetail(statsData);
+      }
+    }
+
+    function renderStatsDetail(stats) {
+      const el = document.getElementById('stats-detail');
+      const byStatus = stats.byStatus || {};
+      const byCategory = stats.byCategory || {};
+      const avg = stats.avgScores || {};
+
+      el.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="filters-card">
+            <h3>By Status</h3>
+            <p>Breakdown of ideas by current status</p>
+            ${Object.entries(byStatus).map(([k, v]) => `
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:13px;">
+                <span class="badge badge-${k}">${k}</span>
+                <strong>${v}</strong>
+              </div>
+            `).join('') || '<p style="color:var(--text-muted);font-size:13px;">No data</p>'}
+          </div>
+          <div class="filters-card">
+            <h3>By Category</h3>
+            <p>Where ideas are coming from</p>
+            ${Object.entries(byCategory).map(([k, v]) => `
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:13px;">
+                <span class="badge badge-category">${k}</span>
+                <strong>${v}</strong>
+              </div>
+            `).join('') || '<p style="color:var(--text-muted);font-size:13px;">No data</p>'}
+          </div>
+          <div class="filters-card" style="grid-column:1/-1;">
+            <h3>Average Scores</h3>
+            <p>Across all submitted ideas</p>
+            <div style="display:flex;gap:32px;margin-top:12px;">
+              <div style="text-align:center;">
+                <div style="font-size:32px;font-weight:700;">${avg.novelty || '—'}</div>
+                <div style="font-size:12px;color:var(--text-muted);">Novelty</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:32px;font-weight:700;">${avg.utility || '—'}</div>
+                <div style="font-size:12px;color:var(--text-muted);">Utility</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:32px;font-weight:700;">${avg.alignment || '—'}</div>
+                <div style="font-size:12px;color:var(--text-muted);">Alignment</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:32px;font-weight:700;">${avg.overall || '—'}</div>
+                <div style="font-size:12px;color:var(--text-muted);">Overall</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function applyQuickFilter(key, value) {
+      if (key === 'status') {
+        document.getElementById('filter-status').value = value;
+      }
+      showPage('ideas');
+      switchTab('ideas-tab');
+      fetchIdeas();
+    }
+
+    // ========== UTILS ==========
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      const date = new Date(d);
+      return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function maskPhone(phone) {
+      if (!phone || phone.length < 6) return phone;
+      return phone.substring(0, 4) + '****' + phone.substring(phone.length - 2);
+    }
+
+    // ========== GO ==========
+    init();
   </script>
 </body>
 </html>

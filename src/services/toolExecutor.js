@@ -13,18 +13,17 @@ class ToolExecutor {
           if (!messageId) {
             return { success: false, error: "No messageId available to react to." };
           }
-          // Use user's phone number if available in context, otherwise try to fetch from user object
           const recipientPhone = phoneNumber || user.phoneNumber;
           if (!recipientPhone) {
-             return { success: false, error: "No phone number available for reaction." };
+            return { success: false, error: "No phone number available for reaction." };
           }
-          
+
           await metaClient.reactToMessage(recipientPhone, messageId, input.emoji);
           return { success: true, reacted: input.emoji };
 
         case 'google_search':
-          // Placeholder for Google Search - would require SERP API key
-          logger.info(`🔍 Mock Search Query: ${input.query}`);
+          // Placeholder for Google Search - requires SERP API key
+          logger.info(`Mock Search Query: ${input.query}`);
           return {
             success: true,
             results: [
@@ -40,18 +39,45 @@ class ToolExecutor {
           return { success: true, message: "Fact remembered." };
 
         case 'submit_idea':
-          const idea = await ideaService.createIdea(user.id, input.description, input);
+          const idea = await ideaService.createIdea(user.id, input.description, {
+            category: input.category,
+            noveltyScore: input.noveltyScore,
+            utilityScore: input.utilityScore,
+            charterAlignmentScore: input.charterAlignmentScore,
+            feedback: input.feedback,
+            executor: input.executor,
+            executorType: input.executorType,
+            priority: input.priority,
+            status: input.status,
+            sponsorSuggestion: input.sponsorSuggestion,
+            // Legacy fields computed from new scores
+            alignmentScore: (input.charterAlignmentScore || 0) * 2,
+            qualityRating: Math.round(
+              ((input.noveltyScore || 0) + (input.utilityScore || 0) + (input.charterAlignmentScore || 0)) / 3
+            )
+          });
+
           return {
             success: true,
-            message: "Idea submitted successfully!",
+            message: "Idea submitted and scored.",
             idea: {
               id: idea.id,
               status: idea.status,
-              sponsor: idea.sponsorSuggestion,
               category: idea.category,
-              priority: idea.priority
+              priority: idea.priority,
+              scores: {
+                novelty: idea.noveltyScore,
+                utility: idea.utilityScore,
+                alignment: idea.charterAlignmentScore,
+                overall: idea.qualityRating
+              },
+              executor: idea.executor,
+              executorType: idea.executorType
             },
-            nextStep: "Ask user for execution date if status is sponsored or evaluating."
+            nextSteps: [
+              idea.executorType === 'tbd' ? "Ask who will execute this idea." : null,
+              !idea.targetExecutionDate ? "Ask for a follow-up date." : null
+            ].filter(Boolean)
           };
 
         case 'set_execution_date':
@@ -59,31 +85,45 @@ class ToolExecutor {
           if (result) {
             return {
               success: true,
-              message: `Execution date set for ${result.targetExecutionDate}. I will follow up at 11 AM on that day.`,
+              message: `Follow-up date locked for ${result.targetExecutionDate}. Will check back at 11 AM on that day.`,
               ideaId: result.id
             };
           } else {
-            return { success: false, error: "Could not find a recent approved idea to schedule." };
+            return { success: false, error: "Could not find a recent idea to schedule. Ask user to share one first." };
           }
 
         case 'get_my_ideas':
           const ideas = await ideaService.getUserIdeas(user.id);
+          if (ideas.length === 0) {
+            return { success: true, ideas: [], message: "No ideas submitted yet." };
+          }
           return {
             success: true,
             ideas: ideas.map(i => ({
-              description: i.description.substring(0, 50) + "...",
+              id: i.id,
+              description: i.description.substring(0, 60) + (i.description.length > 60 ? "..." : ""),
               status: i.status,
+              scores: {
+                novelty: i.noveltyScore,
+                utility: i.utilityScore,
+                alignment: i.charterAlignmentScore,
+                overall: i.qualityRating
+              },
+              executor: i.executor || 'tbd',
+              targetDate: i.targetExecutionDate,
               date: i.createdAt
             }))
           };
 
         case 'get_user_stats':
+          const totalIdeas = user.totalIdeas || 0;
+          const avgQuality = user.averageIdeaQuality || 0;
           return {
             success: true,
             stats: {
-              totalIdeas: user.totalIdeas,
-              averageQuality: user.averageIdeaQuality.toFixed(1),
-              frequency: user.ideaFrequencyGrade
+              totalIdeas,
+              averageQuality: avgQuality.toFixed ? avgQuality.toFixed(1) : '0',
+              frequency: user.ideaFrequencyGrade || 'N/A'
             }
           };
 
