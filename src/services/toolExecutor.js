@@ -34,6 +34,11 @@ class ToolExecutor {
             note: "Real Google Search requires an API key (e.g., Serper/Google). Using mock data."
           };
 
+        case 'remember_fact':
+          const memoryService = require('./memoryService');
+          await memoryService.addFact(user.id, input.fact, input.category);
+          return { success: true, message: "Fact remembered." };
+
         case 'submit_idea':
           const idea = await ideaService.createIdea(user.id, input.description, input);
           return {

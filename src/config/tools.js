@@ -14,6 +14,25 @@ const tools = [
     }
   },
   {
+    name: "remember_fact",
+    description: "Store a fact about the user in long-term memory. Use this for relationships (boss name, partner), preferences, or work context.",
+    input_schema: {
+      type: "object",
+      properties: {
+        fact: {
+          type: "string",
+          description: "The fact to remember (e.g., 'Manager is Raj', 'Wants to switch to Product')."
+        },
+        category: {
+          type: "string",
+          enum: ["work", "personal", "preference", "relationship"],
+          description: "Category of the fact."
+        }
+      },
+      required: ["fact", "category"]
+    }
+  },
+  {
     name: "submit_idea",
     description: "Submit a new idea for Grapevine. Use this when the user describes an idea they have. Analyze it deeply against the company charter.",
     input_schema: {
