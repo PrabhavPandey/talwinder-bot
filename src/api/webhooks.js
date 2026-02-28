@@ -53,6 +53,13 @@ router.post('/webhook', async (req, res) => {
 
     // Process message
     logger.info(`📨 Processing message from ${phoneNumber}: ${text.substring(0, 50)}...`);
+    
+    // 1. Mark as Read (Blue Ticks)
+    await metaClient.markAsRead(messageId);
+    
+    // 2. Start Typing Indicator
+    await metaClient.sendTypingIndicator(phoneNumber);
+
     await processIncomingMessage(phoneNumber, text, userName, messageId);
 
   } catch (error) {
@@ -137,8 +144,10 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
       const cleanPart = part.trim();
       if (!cleanPart) continue;
 
+      // Keep typing indicator active during delays
+      await metaClient.sendTypingIndicator(phoneNumber);
+
       // Simulate typing delay: ~30ms per character, min 1s, max 5s
-      // e.g., 50 chars = 1.5s
       const delay = Math.min(5000, Math.max(1000, cleanPart.length * 30));
       
       logger.info(`⏳ Typing delay: ${delay}ms`);
