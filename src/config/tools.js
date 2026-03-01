@@ -1,38 +1,5 @@
 const tools = [
   {
-    name: "send_reaction",
-    description: "React to a user's message with an emoji to show you are listening/vibing. Use this often for good news, funny moments, or acknowledgment.",
-    input_schema: {
-      type: "object",
-      properties: {
-        emoji: {
-          type: "string",
-          description: "The emoji to react with (e.g., '🔥', '😂', '👍', '❤️', '👀', '🚀')."
-        }
-      },
-      required: ["emoji"]
-    }
-  },
-  {
-    name: "remember_fact",
-    description: "Store a fact about the user in long-term memory. Use this for relationships (boss name, partner), preferences, or work context.",
-    input_schema: {
-      type: "object",
-      properties: {
-        fact: {
-          type: "string",
-          description: "The fact to remember (e.g., 'Manager is Raj', 'Wants to switch to Product')."
-        },
-        category: {
-          type: "string",
-          enum: ["work", "personal", "preference", "relationship"],
-          description: "Category of the fact."
-        }
-      },
-      required: ["fact", "category"]
-    }
-  },
-  {
     name: "submit_idea",
     description: "Submit a new idea for Grapevine. Use this when the user describes an idea they have. Analyze it deeply against the company charter.",
     input_schema: {
@@ -119,20 +86,6 @@ const tools = [
       type: "object",
       properties: {},
       required: []
-    }
-  },
-  {
-    name: "google_search",
-    description: "Search the web for company news, salaries, or market trends to impress the user. Use this PROACTIVELY when they mention companies or roles.",
-    input_schema: {
-      type: "object",
-      properties: {
-        query: {
-          type: "string",
-          description: "The search query (e.g., 'Zepto latest funding 2025', 'Product Manager salary Bangalore')."
-        }
-      },
-      required: ["query"]
     }
   }
 ];

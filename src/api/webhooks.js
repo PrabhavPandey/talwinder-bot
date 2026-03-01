@@ -44,7 +44,6 @@ router.post('/webhook', async (req, res) => {
     const phoneNumber = message.from;
     const text = message.text?.body;
     const userName = value.contacts?.[0]?.profile?.name || 'User';
-    const messageId = message.id;
 
     if (!text) return res.status(200).json({ success: true });
 
@@ -53,14 +52,7 @@ router.post('/webhook', async (req, res) => {
 
     // Process message
     logger.info(`📨 Processing message from ${phoneNumber}: ${text.substring(0, 50)}...`);
-    
-    // 1. Mark as Read (Blue Ticks)
-    await metaClient.markAsRead(messageId);
-    
-    // 2. Start Typing Indicator
-    await metaClient.sendTypingIndicator(phoneNumber);
-
-    await processIncomingMessage(phoneNumber, text, userName, messageId);
+    await processIncomingMessage(phoneNumber, text, userName);
 
   } catch (error) {
     logger.error('❌ Webhook error:', error);
@@ -68,7 +60,7 @@ router.post('/webhook', async (req, res) => {
   }
 });
 
-async function processIncomingMessage(phoneNumber, text, userName, messageId) {
+async function processIncomingMessage(phoneNumber, text, userName) {
   try {
     const formattedPhone = metaClient.constructor.formatPhoneNumber(phoneNumber);
     logger.info(`👤 User: ${userName} (${formattedPhone})`);
@@ -111,7 +103,7 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
       const toolUses = aiResponse.content.filter(c => c.type === 'tool_use');
       const toolResults = await Promise.all(toolUses.map(async (tu) => {
         logger.info(`🔧 Executing tool: ${tu.name}`);
-        const content = await toolExecutor.executeTool(tu.name, tu.input, { user, messageId, phoneNumber: formattedPhone });
+        const content = await toolExecutor.executeTool(tu.name, tu.input, { user });
         return { name: tu.name, content };
       }));
 
@@ -124,54 +116,23 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
       );
     }
 
-    let finalMessage = aiResponse.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+    const finalMessage = aiResponse.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+    logger.info(`📤 Sending response: ${finalMessage.substring(0, 50)}...`);
     
-    // Enforce lowercase (Talwinder Style)
-    if (finalMessage) {
-      finalMessage = finalMessage.toLowerCase();
+    // Send back to WhatsApp
+    const sendResult = await metaClient.sendTextMessage(phoneNumber, finalMessage);
+    if (!sendResult.success) {
+      logger.error('❌ Failed to send WhatsApp message:', sendResult.error);
     } else {
-      logger.warn('⚠️ Empty response from AI');
-      return;
+      logger.info('✅ Message sent successfully');
     }
 
-    logger.info(`__RAW_RESPONSE__: ${finalMessage}`);
-
-    // Message Splitting & Human-like Delays
-    // Split by double newlines to separate "thoughts" or "paragraphs"
-    const parts = finalMessage.split(/\n\n+/).filter(p => p.trim().length > 0);
-
-    for (const part of parts) {
-      const cleanPart = part.trim();
-      if (!cleanPart) continue;
-
-      // Keep typing indicator active during delays
-      await metaClient.sendTypingIndicator(phoneNumber);
-
-      // Simulate typing delay: ~30ms per character, min 1s, max 5s
-      const delay = Math.min(5000, Math.max(1000, cleanPart.length * 30));
-      
-      logger.info(`⏳ Typing delay: ${delay}ms`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-
-      logger.info(`📤 Sending part: ${cleanPart.substring(0, 50)}...`);
-      
-      // Send back to WhatsApp
-      const sendResult = await metaClient.sendTextMessage(phoneNumber, cleanPart);
-      
-      if (!sendResult.success) {
-        logger.error('❌ Failed to send WhatsApp message:', sendResult.error);
-      } else {
-        logger.info('✅ Message sent successfully');
-        
-        // Save response part
-        await db.Conversation.create({
-          userId: user.id,
-          messageType: 'outgoing',
-          content: cleanPart
-        });
-      }
-    }
-
+    // Save response
+    await db.Conversation.create({
+      userId: user.id,
+      messageType: 'outgoing',
+      content: finalMessage
+    });
   } catch (err) {
     logger.error('❌ Error in processIncomingMessage:', err);
   }

@@ -70,54 +70,6 @@ class MetaClient {
     }
   }
 
-  async markAsRead(messageId) {
-    try {
-      await axios.post(
-        `${this.baseUrl}/messages`,
-        {
-          messaging_product: 'whatsapp',
-          status: 'read',
-          message_id: messageId
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      return { success: true };
-    } catch (error) {
-      logger.error('Meta MarkRead error:', error.response?.data || error.message);
-      return { success: false };
-    }
-  }
-
-  async sendTypingIndicator(to) {
-    try {
-      await axios.post(
-        `${this.baseUrl}/messages`,
-        {
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: to,
-          type: 'action',
-          action: 'typing_on'
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      return { success: true };
-    } catch (error) {
-      // Silent fail for typing indicators
-      return { success: false };
-    }
-  }
-
   static formatPhoneNumber(phoneNumber) {
     return phoneNumber.replace(/[^0-9]/g, '');
   }
