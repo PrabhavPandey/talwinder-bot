@@ -44,19 +44,25 @@
 <body class="flex min-h-screen text-black">
 
   <!-- Minimal Sidebar -->
-  <aside class="w-64 border-r border-subtle flex flex-col h-screen sticky top-0">
+  <aside class="w-64 border-r border-subtle flex flex-col h-screen sticky top-0 bg-white z-10">
     <div class="p-6">
-      <div class="flex items-center gap-2 mb-8">
+      <div class="flex items-center gap-2 mb-10">
         <div class="w-2 h-6 bg-black rounded-full"></div>
         <span class="font-bold text-lg tracking-tight">talwinder</span>
       </div>
 
       <nav class="space-y-1">
-        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium bg-subtle rounded-md">
-          <i data-lucide="lightbulb" class="w-4 h-4"></i>
-          ideas
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium bg-subtle rounded-md group">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-black"></i>
+          overview
         </a>
-        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500 hover:text-black">
+        <a href="#"
+          class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-400 hover:text-black hover:bg-subtle rounded-md transition-all">
+          <i data-lucide="lightbulb" class="w-4 h-4"></i>
+          idea repository
+        </a>
+        <a href="#"
+          class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-400 hover:text-black hover:bg-subtle rounded-md transition-all">
           <i data-lucide="settings" class="w-4 h-4"></i>
           settings
         </a>
@@ -68,7 +74,7 @@
         <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">AD</div>
         <div class="flex-1 min-w-0">
           <p class="text-xs font-semibold">admin</p>
-          <p class="text-[10px] text-gray-400">grapevine org</p>
+          <p class="text-[10px] text-gray-400 uppercase tracking-widest">grapevine base</p>
         </div>
       </div>
     </div>
@@ -76,94 +82,184 @@
 
   <!-- Main Content -->
   <main class="flex-1 p-10 max-w-6xl mx-auto">
-    <header class="mb-12">
-      <h1 class="text-3xl font-bold tracking-tight mb-2">idea repository</h1>
-      <p class="text-gray-500 text-sm">monitor and sponsor employee suggestions for grapevine.</p>
+    <header class="mb-12 flex justify-between items-end">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight mb-2">operational stats</h1>
+        <p class="text-gray-500 text-sm">performance metrics and idea pipeline for grapevine saarthi.</p>
+      </div>
+      <div class="text-[10px] uppercase font-bold text-gray-300 tracking-[0.2em]">last updated: now</div>
     </header>
 
-    <!-- Metrics Section -->
-    <div class="grid grid-cols-2 gap-8 mb-12" id="statsGrid">
-      <div class="border border-subtle p-6 rounded-xl">
-        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">total submissions</div>
-        <div class="text-4xl font-bold" id="totalIdeas">-</div>
+    <!-- Key Metrics Grid -->
+    <div class="grid grid-cols-4 gap-6 mb-12" id="statsGrid">
+      <div class="border border-subtle p-6 rounded-2xl relative overflow-hidden">
+        <div class="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">onboarded users</div>
+        <div class="text-4xl font-bold mb-1" id="onboardedUsers">-</div>
+        <div class="text-[10px] text-gray-400 flex items-center gap-1">
+          <i data-lucide="check-circle-2" class="w-3 h-3 text-green-500"></i>
+          <span id="successRate">0% success rate</span>
+        </div>
+        <div class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-1000" id="successBar"
+          style="width: 0%"></div>
       </div>
-      <div class="border border-subtle p-6 rounded-xl">
-        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">sponsored ideas</div>
-        <div class="text-4xl font-bold" id="sponsoredIdeas">-</div>
+
+      <div class="border border-subtle p-6 rounded-2xl">
+        <div class="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">ideas submitted</div>
+        <div class="text-4xl font-bold mb-1" id="totalIdeas">-</div>
+        <div class="text-[10px] text-gray-400 flex items-center gap-1">
+          <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i>
+          <span id="velocityCount">+0 this week</span>
+        </div>
+      </div>
+
+      <div class="border border-subtle p-6 rounded-2xl">
+        <div class="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">total messages</div>
+        <div class="text-4xl font-bold mb-1" id="totalMessages">-</div>
+        <div class="text-[10px] text-gray-400 uppercase tracking-widest">engagement volume</div>
+      </div>
+
+      <div class="border border-subtle p-6 rounded-2xl bg-black text-white">
+        <div class="text-gray-600 text-[9px] font-bold uppercase tracking-widest mb-4">sponsored</div>
+        <div class="text-4xl font-bold mb-1" id="sponsoredIdeas">-</div>
+        <div class="text-[10px] text-gray-500 uppercase tracking-widest">pipeline ready</div>
       </div>
     </div>
 
-    <!-- Filters -->
-    <section class="mb-10 flex gap-4">
-      <div class="flex-1 relative">
-        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-        <input type="text" id="userSearch" class="w-full border border-subtle pl-10 pr-4 py-2 rounded-lg text-sm"
-          placeholder="search by name or phone..." oninput="fetchIdeas()">
-      </div>
-      <select id="categoryFilter" class="border border-subtle px-4 py-2 rounded-lg text-sm bg-white"
-        onchange="fetchIdeas()">
-        <option value="">all categories</option>
-        <option value="growth">growth</option>
-        <option value="engineering">engineering</option>
-        <option value="product">product</option>
-        <option value="org">organization</option>
-      </select>
-      <select id="statusFilter" class="border border-subtle px-4 py-2 rounded-lg text-sm bg-white"
-        onchange="fetchIdeas()">
-        <option value="">all statuses</option>
-        <option value="sponsored">sponsored</option>
-        <option value="evaluating">evaluating</option>
-        <option value="pending">pending</option>
-        <option value="rejected">rejected</option>
-      </select>
-    </section>
+    <!-- Secondary Insights Section -->
+    <div class="grid grid-cols-12 gap-8 mb-12">
+      <!-- Leaderboard -->
+      <section class="col-span-4 border border-subtle rounded-2xl p-6">
+        <h2 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
+          <i data-lucide="medal" class="w-3 h-3"></i>
+          top contributors
+        </h2>
+        <div id="leaderboardList" class="space-y-4">
+          <!-- Leaderboard items -->
+        </div>
+      </section>
 
-    <!-- Data Table -->
-    <section class="border border-subtle rounded-xl overflow-hidden">
+      <!-- Search & Quick Filters -->
+      <section class="col-span-8 flex flex-col justify-end">
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div class="col-span-2 relative">
+            <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-gray-400"></i>
+            <input type="text" id="userSearch" class="w-full border border-subtle pl-10 pr-4 py-2.5 rounded-xl text-sm"
+              placeholder="search contributors by name or phone..." oninput="fetchIdeas()">
+          </div>
+          <select id="statusFilter" class="border border-subtle px-4 py-2.5 rounded-xl text-sm bg-white font-medium"
+            onchange="fetchIdeas()">
+            <option value="">all statuses</option>
+            <option value="sponsored">sponsored</option>
+            <option value="evaluating">evaluating</option>
+            <option value="pending">pending</option>
+            <option value="rejected">rejected</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="setStatus('')"
+            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-black hover:text-white transition-all">all</button>
+          <button onclick="setStatus('sponsored')"
+            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-green-500 hover:text-white transition-all">sponsored</button>
+          <button onclick="setStatus('evaluating')"
+            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-orange-500 hover:text-white transition-all">evaluating</button>
+          <button onclick="setStatus('pending')"
+            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-blue-500 hover:text-white transition-all">pending</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Repository Table -->
+    <section class="border border-subtle rounded-2xl overflow-hidden shadow-sm">
+      <div class="p-4 bg-subtle border-b border-subtle flex justify-between items-center">
+        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">contribution repository</span>
+        <span class="text-[10px] font-bold text-gray-300" id="itemCount">0 ideas found</span>
+      </div>
       <table class="w-full text-left text-sm">
-        <thead class="bg-subtle text-gray-400 font-medium border-b border-subtle">
+        <thead class="bg-white text-gray-400 font-medium border-b border-subtle">
           <tr>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">contributor</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">idea</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">utility</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">status</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">ship date</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">contributor</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">idea details</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest w-24">utility</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">status</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">ship date</th>
           </tr>
         </thead>
-        <tbody id="ideasGrid">
+        <tbody id="ideasGrid" class="divide-y divide-subtle">
           <!-- Ideas injected here -->
         </tbody>
       </table>
-      <div id="noIdeasPlaceholder" class="hidden py-20 text-center text-gray-400 text-sm">
-        no ideas found matching these filters.
+      <div id="noIdeasPlaceholder" class="hidden py-20 text-center text-gray-300 text-xs uppercase tracking-[0.2em]">
+        empty repository
       </div>
     </section>
   </main>
 
   <script>
+    function setStatus(val) {
+      document.getElementById('statusFilter').value = val;
+      fetchIdeas();
+    }
+
     async function fetchStats() {
       try {
         const res = await fetch('/api/dashboard/stats');
         const data = await res.json();
         if (data.success) {
-          document.getElementById('totalIdeas').textContent = data.stats.total;
-          document.getElementById('sponsoredIdeas').textContent = data.stats.sponsored;
+          const s = data.stats;
+          document.getElementById('totalIdeas').textContent = s.total;
+          document.getElementById('sponsoredIdeas').textContent = s.sponsored;
+          document.getElementById('onboardedUsers').textContent = s.usersOnboarded;
+          document.getElementById('totalMessages').textContent = s.messages;
+          document.getElementById('successRate').textContent = `${s.successRate}% success rate`;
+          document.getElementById('successBar').style.width = `${s.successRate}%`;
+          document.getElementById('velocityCount').textContent = `+${s.velocity} this week`;
+
+          renderLeaderboard(s.topContributors);
         }
       } catch (err) { console.error('Stats fetch error:', err); }
     }
 
+    function renderLeaderboard(contributors) {
+      const el = document.getElementById('leaderboardList');
+      el.innerHTML = '';
+
+      if (!contributors || contributors.length === 0) {
+        el.innerHTML = '<p class="text-[10px] text-gray-300 uppercase tracking-widest">no contributors yet</p>';
+        return;
+      }
+
+      contributors.forEach((c, i) => {
+        const rank = i + 1;
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between group cursor-default';
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-bold text-gray-200">0${rank}</span>
+            <div>
+              <p class="text-xs font-bold text-black">${c.name}</p>
+              <p class="text-[9px] text-gray-400 lowercase">${c.totalIdeas} ideas submitted</p>
+            </div>
+          </div>
+          <div class="text-[10px] font-bold bg-subtle px-2 py-1 rounded-lg">
+            ${c.averageIdeaQuality.toFixed(1)}
+          </div>
+        `;
+        el.appendChild(item);
+      });
+    }
+
     async function fetchIdeas() {
       const status = document.getElementById('statusFilter').value;
-      const category = document.getElementById('categoryFilter').value;
       const user = document.getElementById('userSearch').value;
 
-      let url = `/api/dashboard/ideas?status=${status}&category=${category}&user=${user}`;
+      let url = `/api/dashboard/ideas?status=${status}&user=${user}`;
 
       try {
         const res = await fetch(url);
         const data = await res.json();
         if (data.success) {
           renderIdeas(data.ideas);
+          document.getElementById('itemCount').textContent = `${data.ideas.length} ideas found`;
           const placeholder = document.getElementById('noIdeasPlaceholder');
           data.ideas.length === 0 ? placeholder.classList.remove('hidden') : placeholder.classList.add('hidden');
         }
@@ -176,29 +272,39 @@
 
       ideas.forEach(idea => {
         const row = document.createElement('tr');
-        row.className = 'border-b border-subtle table-row';
+        row.className = 'table-row transition-all duration-200 hover:bg-subtle/50';
+
+        const statusColors = {
+          'sponsored': 'text-green-600',
+          'evaluating': 'text-orange-500',
+          'pending': 'text-blue-500',
+          'rejected': 'text-gray-400'
+        };
 
         row.innerHTML = `
           <td class="px-6 py-6">
-            <p class="font-bold text-black">${idea.user.name}</p>
-            <p class="text-[10px] text-gray-400">${idea.user.phoneNumber}</p>
+            <p class="font-bold text-xs text-black">${idea.user.name}</p>
+            <p class="text-[9px] text-gray-400">${idea.user.phoneNumber}</p>
           </td>
           <td class="px-6 py-6 max-w-sm">
-            <p class="text-xs text-gray-600 line-clamp-2">${idea.description}</p>
-            <span class="inline-block mt-2 text-[9px] font-bold uppercase tracking-wider text-gray-400 border border-subtle px-1.5 py-0.5 rounded">
+            <p class="text-xs text-gray-600 line-clamp-2 mb-2 font-medium">${idea.description}</p>
+            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-400 border border-subtle px-1.5 py-0.5 rounded-md">
               ${idea.category}
             </span>
           </td>
           <td class="px-6 py-6">
             <div class="flex items-center gap-2">
-              <span class="text-black font-bold text-xs">${idea.utilityScore || 0}/5</span>
+              <span class="text-black font-bold text-xs">${idea.utilityScore || 0}</span>
+              <div class="w-12 h-1 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-black" style="width: ${(idea.utilityScore || 0) * 20}%"></div>
+              </div>
             </div>
           </td>
-          <td class="px-6 py-6 text-[10px] font-bold uppercase tracking-widest">
+          <td class="px-6 py-6 font-bold uppercase text-[9px] tracking-[0.15em] ${statusColors[idea.status] || ''}">
             ${idea.status}
           </td>
-          <td class="px-6 py-6 text-[10px] font-medium text-gray-400">
-            ${idea.targetExecutionDate || 'tbd'}
+          <td class="px-6 py-6 text-[10px] font-bold text-gray-400">
+            ${idea.targetExecutionDate || 'TBD'}
           </td>
         `;
 
@@ -207,7 +313,6 @@
       lucide.createIcons();
     }
 
-    // Initial load
     fetchStats();
     fetchIdeas();
     lucide.createIcons();

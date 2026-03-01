@@ -117,8 +117,38 @@ class IdeaService {
     const totalIdeas = await db.Idea.count();
     const sponsoredCount = await db.Idea.count({ where: { status: 'sponsored' } });
 
-    const avgNovelty = await db.Idea.avg('noveltyScore');
+    // Onboarded users: name is NOT 'User'
+    const totalUsersOnboarded = await db.User.count({
+      where: {
+        name: { [Op.not]: 'User' }
+      }
+    });
+
+    // Total messages exchanged
+    const totalMessages = await db.Conversation.count();
+
+    // Average Utility
     const avgUtility = await db.Idea.avg('utilityScore');
+
+    // Idea Velocity: Count in last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const velocityCount = await db.Idea.count({
+      where: {
+        createdAt: { [Op.gte]: sevenDaysAgo }
+      }
+    });
+
+    // Top Contributors
+    const topContributors = await db.User.findAll({
+      where: {
+        name: { [Op.not]: 'User' }
+      },
+      attributes: ['name', 'totalIdeas', 'averageIdeaQuality'],
+      order: [['totalIdeas', 'DESC']],
+      limit: 5
+    });
+
     const categories = await db.Idea.findAll({
       attributes: ['category', [db.sequelize.fn('COUNT', db.sequelize.col('category')), 'count']],
       group: ['category']
@@ -127,8 +157,12 @@ class IdeaService {
     return {
       total: totalIdeas,
       sponsored: sponsoredCount,
-      novelty: (avgNovelty || 0).toFixed(1),
+      usersOnboarded: totalUsersOnboarded,
+      messages: totalMessages,
       utility: (avgUtility || 0).toFixed(1),
+      velocity: velocityCount,
+      successRate: totalIdeas > 0 ? ((sponsoredCount / totalIdeas) * 100).toFixed(0) : 0,
+      topContributors,
       categories
     };
   }
