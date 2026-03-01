@@ -366,9 +366,11 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
     if (!finalMessage || finalMessage.trim() === '') {
       logger.warn('Empty response from AI, falling back to default', { toolIterations });
       if (toolIterations > 0) {
-        finalMessage = "got it"; // Simple acknowledgment that tools were executed
+        // AI executed a tool but didn't output text
+        finalMessage = "got it. working on that.";
       } else {
-        return;
+        // AI completely blanked out
+        finalMessage = "hmm, not sure what to say to that. hit me with a grapevine idea.";
       }
     }
 
