@@ -16,8 +16,6 @@ class MetaClient {
     }
 
     try {
-      logger.info(`🔑 Using Meta Token: ${this.accessToken ? this.accessToken.substring(0, 10) + '...' : 'None'}`);
-      
       const response = await axios.post(
         `${this.baseUrl}/messages`,
         {
@@ -68,6 +66,36 @@ class MetaClient {
       logger.error('Meta Reaction error:', error.response?.data || error.message);
       return { success: false, error: error.response?.data || error.message };
     }
+  }
+
+  async markAsRead(messageId) {
+    try {
+      await axios.post(
+        `${this.baseUrl}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          status: 'read',
+          message_id: messageId
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return { success: true };
+    } catch (error) {
+      logger.error('Meta markAsRead error:', error.response?.data || error.message);
+      return { success: false, error: error.response?.data || error.message };
+    }
+  }
+
+  async sendTypingIndicator(to) {
+    // Note: Official Cloud API support for typing indicators is limited/indirect via mark-as-read
+    // or specifically formatted messages. For now we use mark-as-read as a proxy or just log it
+    // if the specific 'typing on' endpoint isn't available for the account.
+    logger.debug(`[typing indicator] -> ${to}`);
   }
 
   static formatPhoneNumber(phoneNumber) {

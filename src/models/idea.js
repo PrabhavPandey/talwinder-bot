@@ -26,12 +26,28 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'other',
       allowNull: false
     },
-    // Evaluation fields
-    alignmentScore: {
-      type: DataTypes.INTEGER, // 1-10
+    // Evaluation scores (1-5)
+    noveltyScore: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    utilityScore: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    charterAlignmentScore: {
+      type: DataTypes.INTEGER,
       defaultValue: 0
     },
     alignmentReasoning: {
+      type: DataTypes.TEXT
+    },
+    // Execution Mapping
+    executorType: {
+      type: DataTypes.ENUM('user', 'someone_else', 'group'),
+      defaultValue: 'user'
+    },
+    executorDetails: {
       type: DataTypes.TEXT
     },
     priority: {
@@ -52,13 +68,9 @@ module.exports = (sequelize, DataTypes) => {
     feedback: {
       type: DataTypes.TEXT
     },
-    qualityRating: {
-      type: DataTypes.INTEGER, // 1-5 stars for dashboard
-      defaultValue: 0
-    },
     // Execution & Follow-up
     targetExecutionDate: {
-      type: DataTypes.DATEONLY, // We only care about the date, time is fixed at 11 AM
+      type: DataTypes.DATEONLY,
       allowNull: true
     },
     followUpStatus: {

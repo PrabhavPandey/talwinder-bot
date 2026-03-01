@@ -14,13 +14,36 @@ const tools = [
           enum: ["growth", "engineering", "product", "org", "culture", "operations", "other"],
           description: "The primary category this idea falls into."
         },
-        alignmentScore: {
-          type: "number",
-          description: "Alignment score with company charter (1-10)."
+        noveltyScore: {
+          type: "integer",
+          minimum: 1,
+          maximum: 5,
+          description: "How original is this idea? (1-5)"
+        },
+        utilityScore: {
+          type: "integer",
+          minimum: 1,
+          maximum: 5,
+          description: "How useful/practical is this idea? (1-5)"
+        },
+        charterAlignmentScore: {
+          type: "integer",
+          minimum: 1,
+          maximum: 5,
+          description: "How well does it align with the Grapevine Company Charter? (1-5)"
         },
         alignmentReasoning: {
           type: "string",
           description: "Detailed reasoning on why it aligns or doesn't."
+        },
+        executorType: {
+          type: "string",
+          enum: ["user", "someone_else", "group"],
+          description: "Who will be primary on executing this?"
+        },
+        executorDetails: {
+          type: "string",
+          description: "Names or groups if known."
         },
         priority: {
           type: "string",
@@ -30,58 +53,51 @@ const tools = [
         status: {
           type: "string",
           enum: ["pending", "evaluating", "sponsored", "not_now", "rejected"],
-          description: "Initial status."
+          description: "Initial status based on your analysis."
         },
         sponsorSuggestion: {
           type: "string",
           description: "Who in the company should sponsor this idea?"
         },
-        sponsorReasoning: {
-          type: "string",
-          description: "Why this person is the right sponsor."
-        },
         feedback: {
           type: "string",
           description: "Constructive feedback for the user."
-        },
-        qualityRating: {
-          type: "number",
-          description: "Overall quality rating (1-5)."
         }
       },
-      required: ["description", "category", "alignmentScore", "alignmentReasoning", "qualityRating"]
+      required: ["description", "category", "noveltyScore", "utilityScore", "charterAlignmentScore", "alignmentReasoning"]
     }
   },
   {
     name: "set_execution_date",
-    description: "Set a target date for executing an idea. Use this ONLY when the idea is good (sponsored/evaluating) and the user has committed to a date.",
+    description: "Set a target date for executing an idea. Use this when the user provides a follow-up date for an idea.",
     input_schema: {
       type: "object",
       properties: {
-        ideaId: {
-          type: "string",
-          description: "The ID of the idea (if known/provided in context) or leave empty if referring to the most recent idea."
-        },
         targetDate: {
           type: "string",
-          description: "The target execution date (YYYY-MM-DD format)."
+          description: "The target execution date (YYYY-MM-DD or natural language)."
         }
       },
       required: ["targetDate"]
     }
   },
   {
-    name: "get_my_ideas",
-    description: "Get a list of ideas previously submitted by the user.",
+    name: "send_reaction",
+    description: "Add an emoji reaction to the user's message. Use this sparingly to show emotion (hype, agreement, etc).",
     input_schema: {
       type: "object",
-      properties: {},
-      required: []
+      properties: {
+        emoji: {
+          type: "string",
+          description: "The emoji to react with (e.g. '🔥', '🙌', '👀')."
+        }
+      },
+      required: ["emoji"]
     }
   },
   {
-    name: "get_user_stats",
-    description: "Get analytics about the user's idea contributions (count, quality, etc).",
+    name: "get_my_ideas",
+    description: "Get a list of ideas previously submitted by the user.",
     input_schema: {
       type: "object",
       properties: {},

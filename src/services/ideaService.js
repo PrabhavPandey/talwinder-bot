@@ -9,20 +9,25 @@ class IdeaService {
       title: evaluation.title || description.split(' ').slice(0, 5).join(' ') + '...', // Generate title
       description,
       category: evaluation.category,
-      alignmentScore: evaluation.alignmentScore,
+      noveltyScore: evaluation.noveltyScore || 0,
+      utilityScore: evaluation.utilityScore || 0,
+      charterAlignmentScore: evaluation.charterAlignmentScore || 0,
       alignmentReasoning: evaluation.alignmentReasoning,
+      executorType: evaluation.executorType || 'user',
+      executorDetails: evaluation.executorDetails,
       priority: evaluation.priority,
       status: evaluation.status || 'pending',
       sponsorSuggestion: evaluation.sponsorSuggestion,
-      sponsorReasoning: evaluation.sponsorReasoning,
-      feedback: evaluation.feedback,
-      qualityRating: evaluation.qualityRating
+      feedback: evaluation.feedback
     });
 
     // Update user stats
     const user = await db.User.findByPk(userId);
     const totalIdeas = user.totalIdeas + 1;
-    const newAvgQuality = ((user.averageIdeaQuality * user.totalIdeas) + evaluation.qualityRating) / totalIdeas;
+
+    // Simple average of the 3 scores for quality
+    const currentQuality = ((evaluation.noveltyScore || 0) + (evaluation.utilityScore || 0) + (evaluation.charterAlignmentScore || 0)) / 3;
+    const newAvgQuality = ((user.averageIdeaQuality * user.totalIdeas) + currentQuality) / totalIdeas;
 
     await user.update({
       totalIdeas,
@@ -55,26 +60,34 @@ class IdeaService {
     } else {
       // Find the most recent 'sponsored' or 'evaluating' idea
       idea = await db.Idea.findOne({
-        where: { 
-          userId, 
-          status: { [Op.in]: ['sponsored', 'evaluating'] } 
+        where: {
+          userId,
+          status: { [Op.in]: ['sponsored', 'evaluating'] }
         },
+        order: [['createdAt', 'DESC']]
+      });
+    }
+
+    if (!idea) {
+      // Try to find ANY most recent idea if none are sponsored/evaluating (user might have just pitched)
+      idea = await db.Idea.findOne({
+        where: { userId },
         order: [['createdAt', 'DESC']]
       });
     }
 
     if (!idea) return null;
 
-    return await idea.update({ 
-      targetExecutionDate: targetDate,
+    // Convert natural language date if needed or just save
+    return await idea.update({
+      targetExecutionDate: targetDate, // Frontend/Service handles conversion if needed
       followUpStatus: 'scheduled'
     });
   }
 
   async getIdeasDueForFollowUp() {
-    // Return ideas where execution date is TODAY (or past) and follow-up not yet sent
     const today = new Date().toISOString().split('T')[0];
-    
+
     return await db.Idea.findAll({
       where: {
         targetExecutionDate: { [Op.lte]: today },
@@ -85,20 +98,39 @@ class IdeaService {
   }
 
   async getAllIdeas(filters = {}) {
-    // For Dashboard
     const where = {};
     if (filters.category) where.category = filters.category;
     if (filters.status) where.status = filters.status;
-    
+
     return await db.Idea.findAll({
       where,
-      include: [{ 
-        model: db.User, 
-        as: 'user', 
-        attributes: ['name', 'phoneNumber'] 
+      include: [{
+        model: db.User,
+        as: 'user',
+        attributes: ['name', 'phoneNumber']
       }],
       order: [['createdAt', 'DESC']]
     });
+  }
+
+  async getStats() {
+    const totalIdeas = await db.Idea.count();
+    const sponsoredCount = await db.Idea.count({ where: { status: 'sponsored' } });
+
+    const avgNovelty = await db.Idea.avg('noveltyScore');
+    const avgUtility = await db.Idea.avg('utilityScore');
+    const categories = await db.Idea.findAll({
+      attributes: ['category', [db.sequelize.fn('COUNT', db.sequelize.col('category')), 'count']],
+      group: ['category']
+    });
+
+    return {
+      total: totalIdeas,
+      sponsored: sponsoredCount,
+      novelty: (avgNovelty || 0).toFixed(1),
+      utility: (avgUtility || 0).toFixed(1),
+      categories
+    };
   }
 }
 

@@ -1,85 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <title>Talwinder - Grapevine Idea Repository</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talwinder | Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    h1 { color: #2d3748; margin-bottom: 20px; }
-    
-    .filters { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .filter-group { display: inline-block; margin-right: 15px; }
-    select, button { padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; }
-    button { background: #4299e1; color: white; border: none; cursor: pointer; }
-    button:hover { background: #3182ce; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #ffffff;
+    }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 4px solid #cbd5e0; }
-    .card.sponsored { border-top-color: #48bb78; }
-    .card.rejected { border-top-color: #e53e3e; }
-    .card.evaluating { border-top-color: #ecc94b; }
+    .border-subtle {
+      border-color: #f1f1f1;
+    }
 
-    .card h3 { margin-top: 0; font-size: 18px; color: #2d3748; }
-    .meta { font-size: 12px; color: #718096; margin-bottom: 10px; display: flex; justify-content: space-between; }
-    .status { font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-    .status.sponsored { background: #c6f6d5; color: #22543d; }
-    .status.pending { background: #bee3f8; color: #2a4365; }
-    
-    .desc { font-size: 14px; color: #4a5568; margin-bottom: 15px; line-height: 1.5; }
-    .feedback { font-size: 13px; background: #f7fafc; padding: 10px; border-radius: 4px; border-left: 3px solid #cbd5e0; }
-    .feedback strong { display: block; margin-bottom: 4px; color: #2d3748; }
+    .bg-subtle {
+      background-color: #fafafa;
+    }
+
+    select,
+    input {
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: #000;
+    }
+
+    .table-row:hover {
+      background-color: #fafafa;
+    }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1>💡 Talwinder Idea Repository</h1>
-    
-    <div class="filters">
-      <div class="filter-group">
-        <label>Status:</label>
-        <select id="statusFilter">
-          <option value="">All</option>
-          <option value="sponsored">Sponsored</option>
-          <option value="pending">Pending</option>
-          <option value="rejected">Rejected</option>
-        </select>
+
+<body class="flex min-h-screen text-black">
+
+  <!-- Minimal Sidebar -->
+  <aside class="w-64 border-r border-subtle flex flex-col h-screen sticky top-0">
+    <div class="p-6">
+      <div class="flex items-center gap-2 mb-8">
+        <div class="w-2 h-6 bg-black rounded-full"></div>
+        <span class="font-bold text-lg tracking-tight">talwinder</span>
       </div>
-      <div class="filter-group">
-        <label>Category:</label>
-        <select id="categoryFilter">
-          <option value="">All</option>
-          <option value="growth">Growth</option>
-          <option value="engineering">Engineering</option>
-          <option value="product">Product</option>
-          <option value="culture">Culture</option>
-        </select>
-      </div>
-      <button onclick="fetchIdeas()">Filter</button>
+
+      <nav class="space-y-1">
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium bg-subtle rounded-md">
+          <i data-lucide="lightbulb" class="w-4 h-4"></i>
+          ideas
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500 hover:text-black">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          settings
+        </a>
+      </nav>
     </div>
 
-    <div id="ideasGrid" class="grid"></div>
-  </div>
+    <div class="mt-auto p-6 border-t border-subtle">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">AD</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold">admin</p>
+          <p class="text-[10px] text-gray-400">grapevine org</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-10 max-w-6xl mx-auto">
+    <header class="mb-12">
+      <h1 class="text-3xl font-bold tracking-tight mb-2">idea repository</h1>
+      <p class="text-gray-500 text-sm">monitor and sponsor employee suggestions for grapevine.</p>
+    </header>
+
+    <!-- Metrics Section -->
+    <div class="grid grid-cols-3 gap-8 mb-12" id="statsGrid">
+      <div class="border border-subtle p-6 rounded-xl">
+        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">total submissions</div>
+        <div class="text-4xl font-bold" id="totalIdeas">-</div>
+      </div>
+      <div class="border border-subtle p-6 rounded-xl">
+        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">sponsored ideas</div>
+        <div class="text-4xl font-bold" id="sponsoredIdeas">-</div>
+      </div>
+      <div class="border border-subtle p-6 rounded-xl">
+        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">avg novelty</div>
+        <div class="text-4xl font-bold" id="avgNovelty">-</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <section class="mb-10 flex gap-4">
+      <div class="flex-1 relative">
+        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
+        <input type="text" id="userSearch" class="w-full border border-subtle pl-10 pr-4 py-2 rounded-lg text-sm"
+          placeholder="search by name or phone..." oninput="fetchIdeas()">
+      </div>
+      <select id="categoryFilter" class="border border-subtle px-4 py-2 rounded-lg text-sm bg-white"
+        onchange="fetchIdeas()">
+        <option value="">all categories</option>
+        <option value="growth">growth</option>
+        <option value="engineering">engineering</option>
+        <option value="product">product</option>
+        <option value="org">organization</option>
+      </select>
+      <select id="statusFilter" class="border border-subtle px-4 py-2 rounded-lg text-sm bg-white"
+        onchange="fetchIdeas()">
+        <option value="">all statuses</option>
+        <option value="sponsored">sponsored</option>
+        <option value="evaluating">evaluating</option>
+        <option value="pending">pending</option>
+        <option value="rejected">rejected</option>
+      </select>
+    </section>
+
+    <!-- Data Table -->
+    <section class="border border-subtle rounded-xl overflow-hidden">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-subtle text-gray-400 font-medium border-b border-subtle">
+          <tr>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">contributor</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">idea</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">scores</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">status</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">ship date</th>
+          </tr>
+        </thead>
+        <tbody id="ideasGrid">
+          <!-- Ideas injected here -->
+        </tbody>
+      </table>
+      <div id="noIdeasPlaceholder" class="hidden py-20 text-center text-gray-400 text-sm">
+        no ideas found matching these filters.
+      </div>
+    </section>
+  </main>
 
   <script>
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('totalIdeas').textContent = data.stats.total;
+          document.getElementById('sponsoredIdeas').textContent = data.stats.sponsored;
+          document.getElementById('avgNovelty').textContent = `${data.stats.novelty}/5`;
+        }
+      } catch (err) { console.error('Stats fetch error:', err); }
+    }
+
     async function fetchIdeas() {
       const status = document.getElementById('statusFilter').value;
       const category = document.getElementById('categoryFilter').value;
-      
-      let url = '/api/dashboard/ideas?';
-      if (status) url += `status=${status}&`;
-      if (category) url += `category=${category}`;
+      const user = document.getElementById('userSearch').value;
+
+      let url = `/api/dashboard/ideas?status=${status}&category=${category}&user=${user}`;
 
       try {
         const res = await fetch(url);
         const data = await res.json();
-        
         if (data.success) {
           renderIdeas(data.ideas);
+          const placeholder = document.getElementById('noIdeasPlaceholder');
+          ideas.length === 0 ? placeholder.classList.remove('hidden') : placeholder.classList.add('hidden');
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error('Ideas fetch error:', err); }
     }
 
     function renderIdeas(ideas) {
@@ -87,38 +180,50 @@
       grid.innerHTML = '';
 
       ideas.forEach(idea => {
-        const card = document.createElement('div');
-        card.className = `card ${idea.status}`;
-        
-        card.innerHTML = `
-          <div class="meta">
-            <span>${idea.category.toUpperCase()}</span>
-            <span class="status ${idea.status}">${idea.status}</span>
-          </div>
-          <h3>${idea.title || 'Untitled Idea'}</h3>
-          <div class="meta">By: ${idea.user.name} • ${new Date(idea.createdAt).toLocaleDateString()}</div>
-          <p class="desc">${idea.description}</p>
-          
-          ${idea.feedback ? `
-            <div class="feedback">
-              <strong>Talwinder's Take:</strong>
-              ${idea.feedback}
-            </div>
-          ` : ''}
+        const row = document.createElement('tr');
+        row.className = 'border-b border-subtle table-row';
 
-          ${idea.targetExecutionDate ? `
-            <div style="margin-top: 10px; font-size: 12px; color: #e53e3e; font-weight: bold;">
-              🎯 Target: ${idea.targetExecutionDate}
+        row.innerHTML = `
+          <td class="px-6 py-6">
+            <p class="font-bold text-black">${idea.user.name}</p>
+            <p class="text-[10px] text-gray-400">${idea.user.phoneNumber}</p>
+          </td>
+          <td class="px-6 py-6 max-w-sm">
+            <p class="text-xs text-gray-600 line-clamp-2">${idea.description}</p>
+            <span class="inline-block mt-2 text-[9px] font-bold uppercase tracking-wider text-gray-400 border border-subtle px-1.5 py-0.5 rounded">
+              ${idea.category}
+            </span>
+          </td>
+          <td class="px-6 py-6">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] text-gray-400 uppercase font-bold w-12">novelty</span>
+                <span class="text-black font-bold text-xs">${idea.noveltyScore || 0}/5</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] text-gray-400 uppercase font-bold w-12">utility</span>
+                <span class="text-black font-bold text-xs">${idea.utilityScore || 0}/5</span>
+              </div>
             </div>
-          ` : ''}
+          </td>
+          <td class="px-6 py-6 text-[10px] font-bold uppercase tracking-widest">
+            ${idea.status}
+          </td>
+          <td class="px-6 py-6 text-[10px] font-medium text-gray-400">
+            ${idea.targetExecutionDate || 'tbd'}
+          </td>
         `;
-        
-        grid.appendChild(card);
+
+        grid.appendChild(row);
       });
+      lucide.createIcons();
     }
 
     // Initial load
+    fetchStats();
     fetchIdeas();
+    lucide.createIcons();
   </script>
 </body>
+
 </html>

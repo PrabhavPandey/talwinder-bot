@@ -1,11 +1,11 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
 const logger = require('./logger');
 
 class GeminiClient {
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
     this.modelName = process.env.AI_MODEL || 'gemini-1.5-pro';
-    
+
     if (!this.apiKey) {
       logger.warn('GEMINI_API_KEY not configured');
       this.client = null;
@@ -66,10 +66,19 @@ class GeminiClient {
 
     try {
       const geminiTools = this.convertToolsToGeminiFormat(tools);
+
+      const safetySettings = [
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
+      ];
+
       const model = this.client.getGenerativeModel({
         model: this.modelName,
         systemInstruction: systemPrompt,
-        tools: [{ functionDeclarations: geminiTools }]
+        tools: [{ functionDeclarations: geminiTools }],
+        safetySettings
       });
 
       const history = this.convertMessagesToGeminiFormat(messages.slice(0, -1));
@@ -83,9 +92,17 @@ class GeminiClient {
 
       const result = await chat.sendMessage(userMessage);
       const response = result.response;
-      
+
       const content = [];
       const functionCalls = response.functionCalls();
+
+      // Always try to extract text, even if tools were called
+      try {
+        const text = response.text();
+        if (text) content.push({ type: 'text', text });
+      } catch (e) {
+        // text() throws if there is no text part (e.g. only function calls)
+      }
 
       if (functionCalls && functionCalls.length > 0) {
         functionCalls.forEach(call => {
@@ -96,9 +113,6 @@ class GeminiClient {
             input: call.args
           });
         });
-      } else {
-        const text = response.text();
-        if (text) content.push({ type: 'text', text });
       }
 
       const stopReason = functionCalls && functionCalls.length > 0 ? 'tool_use' : 'end_turn';
@@ -125,9 +139,17 @@ class GeminiClient {
 
       const result = await chatInstance.sendMessage(functionResponses);
       const response = result.response;
-      
+
       const content = [];
       const functionCalls = response.functionCalls();
+
+      // Always try to extract text after tool results
+      try {
+        const text = response.text();
+        if (text) content.push({ type: 'text', text });
+      } catch (e) {
+        // text() throws if empty
+      }
 
       if (functionCalls && functionCalls.length > 0) {
         functionCalls.forEach(call => {
@@ -138,9 +160,6 @@ class GeminiClient {
             input: call.args
           });
         });
-      } else {
-        const text = response.text();
-        if (text) content.push({ type: 'text', text });
       }
 
       const stopReason = functionCalls && functionCalls.length > 0 ? 'tool_use' : 'end_turn';

@@ -41,8 +41,9 @@ async function startServer() {
   try {
     // Sync Database
     await db.sequelize.authenticate();
-    logger.info('✅ Database connected successfully');
-    
+    await db.sequelize.sync({ alter: true });
+    logger.info('✅ Database connected and synced successfully');
+
     // Init Scheduler
     scheduler.init();
     logger.info('✅ Scheduler started');
