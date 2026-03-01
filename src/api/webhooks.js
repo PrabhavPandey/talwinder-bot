@@ -271,9 +271,11 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
     logger.info(`👤 User: ${userName} (${formattedPhone})`);
 
     // Get or create user
+    // We default to 'User' even if Meta provides a name, 
+    // to ensure Talwinder's onboarding (asking for name) triggers.
     let [user, created] = await db.User.findOrCreate({
       where: { phoneNumber: formattedPhone },
-      defaults: { name: userName }
+      defaults: { name: 'User' }
     });
 
     if (!created) {
