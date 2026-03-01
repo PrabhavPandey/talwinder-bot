@@ -5,7 +5,7 @@ class GeminiClient {
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
     this.modelName = process.env.AI_MODEL || 'gemini-1.5-pro';
-    
+
     if (!this.apiKey) {
       logger.warn('GEMINI_API_KEY not configured');
       this.client = null;
@@ -83,9 +83,16 @@ class GeminiClient {
 
       const result = await chat.sendMessage(userMessage);
       const response = result.response;
-      
+
       const content = [];
       const functionCalls = response.functionCalls();
+
+      try {
+        const text = response.text();
+        if (text) content.push({ type: 'text', text });
+      } catch (e) {
+        // text() throws if empty
+      }
 
       if (functionCalls && functionCalls.length > 0) {
         functionCalls.forEach(call => {
@@ -96,9 +103,6 @@ class GeminiClient {
             input: call.args
           });
         });
-      } else {
-        const text = response.text();
-        if (text) content.push({ type: 'text', text });
       }
 
       const stopReason = functionCalls && functionCalls.length > 0 ? 'tool_use' : 'end_turn';
@@ -125,9 +129,16 @@ class GeminiClient {
 
       const result = await chatInstance.sendMessage(functionResponses);
       const response = result.response;
-      
+
       const content = [];
       const functionCalls = response.functionCalls();
+
+      try {
+        const text = response.text();
+        if (text) content.push({ type: 'text', text });
+      } catch (e) {
+        // text() throws if empty
+      }
 
       if (functionCalls && functionCalls.length > 0) {
         functionCalls.forEach(call => {
@@ -138,9 +149,6 @@ class GeminiClient {
             input: call.args
           });
         });
-      } else {
-        const text = response.text();
-        if (text) content.push({ type: 'text', text });
       }
 
       const stopReason = functionCalls && functionCalls.length > 0 ? 'tool_use' : 'end_turn';

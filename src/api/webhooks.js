@@ -362,20 +362,13 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
 
     let finalMessage = aiResponse.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
 
-    // Safety check for empty response
-    if (!finalMessage || finalMessage.trim() === '') {
-      logger.warn('Empty response from AI, falling back to default', { toolIterations });
-      if (toolIterations > 0) {
-        // AI executed a tool but didn't output text
-        finalMessage = "got it. working on that.";
-      } else {
-        // AI completely blanked out
-        finalMessage = "hmm, not sure what to say to that. hit me with a grapevine idea.";
-      }
-    }
-
     // Enforce lowercase (Talwinder personality)
-    finalMessage = finalMessage.toLowerCase();
+    if (finalMessage) {
+      finalMessage = finalMessage.toLowerCase();
+    } else {
+      logger.warn('Empty response from AI');
+      return;
+    }
 
     // Strip any emojis (personality rule: no emojis in text)
     finalMessage = stripEmojis(finalMessage);
