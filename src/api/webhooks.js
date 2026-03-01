@@ -353,9 +353,9 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
     if (!finalMessage || finalMessage.trim() === '') {
       logger.warn('Empty response from AI, checking tool results', { toolIterations });
       if (toolIterations > 0) {
-        finalMessage = "got it. working on that.";
+        finalMessage = "done. what else?";
       } else {
-        finalMessage = "hmm, not sure what to say to that. hit me with a grapevine idea.";
+        finalMessage = "got it. let's get back to the ideas. what fire are you sitting on?";
       }
     }
 
