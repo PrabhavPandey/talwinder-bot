@@ -14,7 +14,7 @@ const logger = require('../utils/logger');
 // MESSAGE CHUNKING: Batch multiple back-to-back user messages
 // ============================================================
 const pendingMessages = new Map(); // phoneNumber -> { messages: [], timeout: TimeoutId, createdAt: Date }
-const MESSAGE_BATCH_DELAY = 3000; // 3 seconds — wait for user to finish typing
+const MESSAGE_BATCH_DELAY = 5000; // 5 seconds — wait for user to finish typing
 
 const MESSAGE_BATCH_CONFIG = {
   maxBatches: 200,           // Max concurrent batches
@@ -52,7 +52,7 @@ const activeProcessing = new Map(); // phoneNumber -> { isProcessing: bool, star
 const PROCESSING_LOCK_CONFIG = {
   maxQueueSize: 10,
   processingTimeout: 45000,  // 45 seconds max per processing
-  requeuDelay: 2000          // 2 second delay for re-queued messages
+  requeuDelay: 1000          // 1 second delay for re-queued messages
 };
 
 // Cleanup stale batches
