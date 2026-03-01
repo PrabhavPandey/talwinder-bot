@@ -6,7 +6,7 @@ class PersonalityEngine {
     return text.toLowerCase();
   }
 
-  async getConversationHistory(userId, limit = 25) {
+  async getConversationHistory(userId, limit = 10) {
     const conversations = await db.Conversation.findAll({
       where: { userId },
       order: [['createdAt', 'DESC']],

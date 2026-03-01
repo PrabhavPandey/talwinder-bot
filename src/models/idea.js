@@ -26,22 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'other',
       allowNull: false
     },
-
-    // === SCORING (1-5 each) ===
-    noveltyScore: {
-      type: DataTypes.INTEGER, // 1-5: how original/fresh
-      defaultValue: 0
-    },
-    utilityScore: {
-      type: DataTypes.INTEGER, // 1-5: how useful/impactful
-      defaultValue: 0
-    },
-    charterAlignmentScore: {
-      type: DataTypes.INTEGER, // 1-5: how aligned with company charter
-      defaultValue: 0
-    },
-
-    // Legacy alignment (kept for backwards compat, can be deprecated later)
+    // Evaluation fields
     alignmentScore: {
       type: DataTypes.INTEGER, // 1-10
       defaultValue: 0
@@ -49,7 +34,6 @@ module.exports = (sequelize, DataTypes) => {
     alignmentReasoning: {
       type: DataTypes.TEXT
     },
-
     priority: {
       type: DataTypes.ENUM('low', 'medium', 'high', 'critical'),
       defaultValue: 'medium'
@@ -58,8 +42,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('pending', 'evaluating', 'sponsored', 'not_now', 'rejected', 'executed'),
       defaultValue: 'pending'
     },
-
-    // === SPONSORSHIP ===
+    // Sponsorship info
     sponsorSuggestion: {
       type: DataTypes.STRING
     },
@@ -70,28 +53,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT
     },
     qualityRating: {
-      type: DataTypes.INTEGER, // 1-5 overall (avg of 3 scores)
+      type: DataTypes.INTEGER, // 1-5 stars for dashboard
       defaultValue: 0
     },
-
-    // === EXECUTION ===
-    executor: {
-      type: DataTypes.STRING, // Who will execute: name or "self"
-      allowNull: true
-    },
-    executorType: {
-      type: DataTypes.ENUM('self', 'team', 'other', 'tbd'),
-      defaultValue: 'tbd'
-    },
+    // Execution & Follow-up
     targetExecutionDate: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATEONLY, // We only care about the date, time is fixed at 11 AM
       allowNull: true
     },
     followUpStatus: {
       type: DataTypes.ENUM('none', 'scheduled', 'sent', 'acknowledged'),
       defaultValue: 'none'
     },
-
     metadata: {
       type: DataTypes.JSONB,
       defaultValue: {}

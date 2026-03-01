@@ -15,17 +15,17 @@ const tools = [
   },
   {
     name: "remember_fact",
-    description: "Store a fact about the user in long-term memory. Use this for their role, team, relationships, preferences, or anything they share. STORE EVERYTHING.",
+    description: "Store a fact about the user in long-term memory. Use this for relationships (boss name, partner), preferences, or work context.",
     input_schema: {
       type: "object",
       properties: {
         fact: {
           type: "string",
-          description: "The fact to remember (e.g., 'Works on growth team', 'Manager is Raj', 'Frustrated with onboarding flow')."
+          description: "The fact to remember (e.g., 'Manager is Raj', 'Wants to switch to Product')."
         },
         category: {
           type: "string",
-          enum: ["work", "personal", "preference", "relationship", "idea_context"],
+          enum: ["work", "personal", "preference", "relationship"],
           description: "Category of the fact."
         }
       },
@@ -34,7 +34,7 @@ const tools = [
   },
   {
     name: "submit_idea",
-    description: "Submit and evaluate a new idea for Grapevine. Use this IMMEDIATELY when the user describes an idea. Score it honestly on novelty, utility, and charter alignment (1-5 each). Include who will execute if known.",
+    description: "Submit a new idea for Grapevine. Use this when the user describes an idea they have. Analyze it deeply against the company charter.",
     input_schema: {
       type: "object",
       properties: {
@@ -47,62 +47,57 @@ const tools = [
           enum: ["growth", "engineering", "product", "org", "culture", "operations", "other"],
           description: "The primary category this idea falls into."
         },
-        noveltyScore: {
+        alignmentScore: {
           type: "number",
-          description: "How original/fresh is this idea? (1=common, 5=never seen before)"
+          description: "Alignment score with company charter (1-10)."
         },
-        utilityScore: {
-          type: "number",
-          description: "How useful/impactful would this be? (1=nice-to-have, 5=game-changer)"
-        },
-        charterAlignmentScore: {
-          type: "number",
-          description: "How aligned with Grapevine's charter? (1=tangential, 5=core mission). Charter: high impact, scalable, community-driven, solves real pain."
-        },
-        feedback: {
+        alignmentReasoning: {
           type: "string",
-          description: "Your honest, constructive feedback for the user. Be motivating but real."
-        },
-        executor: {
-          type: "string",
-          description: "Who will execute this idea (name, 'self', or 'tbd' if not yet decided)."
-        },
-        executorType: {
-          type: "string",
-          enum: ["self", "team", "other", "tbd"],
-          description: "Type of executor: self (user will do it), team (group effort), other (someone else), tbd (not decided)."
+          description: "Detailed reasoning on why it aligns or doesn't."
         },
         priority: {
           type: "string",
           enum: ["low", "medium", "high", "critical"],
-          description: "Priority based on scores and impact."
+          description: "Priority based on alignment and impact."
         },
         status: {
           type: "string",
-          enum: ["pending", "evaluating", "sponsored", "not_now"],
-          description: "Initial status of the idea."
+          enum: ["pending", "evaluating", "sponsored", "not_now", "rejected"],
+          description: "Initial status."
         },
         sponsorSuggestion: {
           type: "string",
-          description: "Who in the company should sponsor this idea? Leave empty if unsure."
+          description: "Who in the company should sponsor this idea?"
+        },
+        sponsorReasoning: {
+          type: "string",
+          description: "Why this person is the right sponsor."
+        },
+        feedback: {
+          type: "string",
+          description: "Constructive feedback for the user."
+        },
+        qualityRating: {
+          type: "number",
+          description: "Overall quality rating (1-5)."
         }
       },
-      required: ["description", "category", "noveltyScore", "utilityScore", "charterAlignmentScore", "feedback"]
+      required: ["description", "category", "alignmentScore", "alignmentReasoning", "qualityRating"]
     }
   },
   {
     name: "set_execution_date",
-    description: "Set a target date for following up on an idea. Use this when the user commits to a date. ALWAYS push for this after a good idea is submitted.",
+    description: "Set a target date for executing an idea. Use this ONLY when the idea is good (sponsored/evaluating) and the user has committed to a date.",
     input_schema: {
       type: "object",
       properties: {
         ideaId: {
           type: "string",
-          description: "The ID of the idea (leave empty for most recent idea)."
+          description: "The ID of the idea (if known/provided in context) or leave empty if referring to the most recent idea."
         },
         targetDate: {
           type: "string",
-          description: "The target date (YYYY-MM-DD format)."
+          description: "The target execution date (YYYY-MM-DD format)."
         }
       },
       required: ["targetDate"]
@@ -110,7 +105,7 @@ const tools = [
   },
   {
     name: "get_my_ideas",
-    description: "Get a list of ideas previously submitted by the user. Use when they ask about their past ideas or want to check status.",
+    description: "Get a list of ideas previously submitted by the user.",
     input_schema: {
       type: "object",
       properties: {},
@@ -119,7 +114,7 @@ const tools = [
   },
   {
     name: "get_user_stats",
-    description: "Get analytics about the user's idea contributions (count, average scores, etc).",
+    description: "Get analytics about the user's idea contributions (count, quality, etc).",
     input_schema: {
       type: "object",
       properties: {},
@@ -128,13 +123,13 @@ const tools = [
   },
   {
     name: "google_search",
-    description: "Search the web for market data, competitors, or trends to inform idea evaluation. Use PROACTIVELY when they mention specific markets or companies.",
+    description: "Search the web for company news, salaries, or market trends to impress the user. Use this PROACTIVELY when they mention companies or roles.",
     input_schema: {
       type: "object",
       properties: {
         query: {
           type: "string",
-          description: "The search query."
+          description: "The search query (e.g., 'Zepto latest funding 2025', 'Product Manager salary Bangalore')."
         }
       },
       required: ["query"]

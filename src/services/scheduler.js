@@ -11,18 +11,19 @@ class SchedulerService {
   }
 
   init() {
-    logger.info(`Scheduler initialized: ${this.cronSchedule}`);
-
+    logger.info(`📅 Scheduler initialized: ${this.cronSchedule}`);
+    
     cron.schedule(this.cronSchedule, async () => {
-      logger.info('Running daily execution check...');
+      logger.info('⏰ Running daily execution check...');
       await this.checkExecutionFollowUps();
     });
   }
 
   async checkExecutionFollowUps() {
     try {
+      // Find ideas with targetExecutionDate <= today AND followUpStatus = 'scheduled'
       const today = new Date().toISOString().split('T')[0];
-
+      
       const dueIdeas = await db.Idea.findAll({
         where: {
           targetExecutionDate: { [Op.lte]: today },
@@ -51,25 +52,21 @@ class SchedulerService {
     const user = idea.user;
     if (!user || !user.phoneNumber) return;
 
-    const userName = (user.name || 'homie').toLowerCase();
-    const ideaSnippet = idea.description.substring(0, 50);
-
-    // Talwinder personality: lowercase, no emojis, punchy, hook at end
-    const message = 'yo ' + userName + ', today was the day\n\n"' + ideaSnippet + '..."\n\ndid we ship it or what';
+    const message = `Yo ${user.name}! 🚀\n\nIt's game time. You said you'd be ready to execute on this idea by today:\n\n"${idea.description.substring(0, 50)}..."\n\nWhat's the status? Did we ship it? Let me know!`;
 
     try {
       const result = await metaClient.sendTextMessage(user.phoneNumber, message);
-
+      
       if (result.success) {
         await idea.update({ followUpStatus: 'sent' });
-
+        
         await db.Conversation.create({
           userId: user.id,
           messageType: 'outgoing',
           content: message,
           metadata: { type: 'execution_followup', ideaId: idea.id }
         });
-
+        
         logger.info(`Follow-up sent for idea ${idea.id}`);
       }
     } catch (err) {
