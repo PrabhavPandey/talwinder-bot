@@ -9,6 +9,10 @@ class ToolExecutor {
 
     try {
       switch (name) {
+        case 'capture_raw_idea':
+          const rawIdea = await ideaService.captureRawIdea(user.id, input.rawDescription);
+          return { success: true, message: "Raw idea captured. ready for brainstorming.", ideaId: rawIdea.id };
+
         case 'submit_idea':
           // Map scores to service format
           const ideaData = {

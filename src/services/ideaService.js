@@ -3,11 +3,29 @@ const logger = require('../utils/logger');
 const { Op } = require('sequelize');
 
 class IdeaService {
-  async createIdea(userId, description, evaluation) {
+  async captureRawIdea(userId, rawDescription) {
     const idea = await db.Idea.create({
       userId,
-      title: evaluation.title || description.split(' ').slice(0, 5).join(' ') + '...', // Generate title
+      title: rawDescription.split(' ').slice(0, 5).join(' ') + '...',
+      description: rawDescription, // Use as base
+      rawDescription: rawDescription,
+      status: 'evaluating'
+    });
+    return idea;
+  }
+
+  async createIdea(userId, description, evaluation) {
+    // Check if we have an 'evaluating' idea to update first
+    const existing = await db.Idea.findOne({
+      where: { userId, status: 'evaluating' },
+      order: [['createdAt', 'DESC']]
+    });
+
+    const ideaData = {
+      userId,
+      title: evaluation.title || description.split(' ').slice(0, 5).join(' ') + '...',
       description,
+      evolvedDescription: description,
       category: evaluation.category,
       noveltyScore: evaluation.noveltyScore || 0,
       utilityScore: evaluation.utilityScore || 0,
@@ -19,18 +37,28 @@ class IdeaService {
       status: evaluation.status || 'pending',
       sponsorSuggestion: evaluation.sponsorSuggestion,
       feedback: evaluation.feedback
-    });
+    };
+
+    let idea;
+    if (existing) {
+      idea = await existing.update(ideaData);
+    } else {
+      idea = await db.Idea.create({
+        ...ideaData,
+        rawDescription: description // If it skipped capture phase
+      });
+    }
 
     // Update user stats
     const user = await db.User.findByPk(userId);
-    const totalIdeas = user.totalIdeas + 1;
+    const totalIdeasCount = user.totalIdeas + 1;
 
     // Simple average of the 3 scores for quality
     const currentQuality = ((evaluation.noveltyScore || 0) + (evaluation.utilityScore || 0) + (evaluation.charterAlignmentScore || 0)) / 3;
-    const newAvgQuality = ((user.averageIdeaQuality * user.totalIdeas) + currentQuality) / totalIdeas;
+    const newAvgQuality = ((user.averageIdeaQuality * user.totalIdeas) + currentQuality) / totalIdeasCount;
 
     await user.update({
-      totalIdeas,
+      totalIdeas: totalIdeasCount,
       averageIdeaQuality: newAvgQuality,
       lastInteraction: new Date()
     });
@@ -164,6 +192,48 @@ class IdeaService {
       successRate: totalIdeas > 0 ? ((sponsoredCount / totalIdeas) * 100).toFixed(0) : 0,
       topContributors,
       categories
+    };
+  }
+
+  async getReport() {
+    const ideas = await db.Idea.findAll({
+      include: [{
+        model: db.User,
+        as: 'user',
+        attributes: ['name', 'phoneNumber']
+      }]
+    });
+
+    const priorityMap = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+
+    const sortedIdeas = ideas.sort((a, b) => {
+      const pA = priorityMap[a.priority] || 0;
+      const pB = priorityMap[b.priority] || 0;
+      if (pB !== pA) return pB - pA;
+      return (b.utilityScore || 0) - (a.utilityScore || 0);
+    });
+
+    return {
+      generatedAt: new Date(),
+      count: sortedIdeas.length,
+      metrics: {
+        total: sortedIdeas.length,
+        avgUtility: (sortedIdeas.reduce((sum, i) => sum + i.utilityScore, 0) / sortedIdeas.length || 0).toFixed(1),
+        avgNovelty: (sortedIdeas.reduce((sum, i) => sum + i.noveltyScore, 0) / sortedIdeas.length || 0).toFixed(1)
+      },
+      ideas: sortedIdeas.map(i => ({
+        id: i.id,
+        user: i.user?.name || 'Unknown',
+        title: i.title,
+        description: i.description,
+        category: i.category,
+        novelty: i.noveltyScore,
+        utility: i.utilityScore,
+        priority: i.priority,
+        status: i.status,
+        reasoning: i.alignmentReasoning,
+        suggestedSponsor: i.sponsorSuggestion
+      }))
     };
   }
 }

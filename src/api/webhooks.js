@@ -118,10 +118,11 @@ router.post('/webhook', async (req, res) => {
     const message = messages[0];
     const phoneNumber = message.from;
     const text = message.text?.body;
+    const image = message.image; // { id, mime_type, sha256, caption }
     const userName = value.contacts?.[0]?.profile?.name || 'User';
     const messageId = message.id;
 
-    if (!text || text.trim() === '') {
+    if (!text && !image) {
       return res.status(200).json({ success: true });
     }
 
@@ -152,6 +153,7 @@ router.post('/webhook', async (req, res) => {
     const messageData = {
       phoneNumber,
       message: text,
+      image: image,
       name: userName,
       messageId,
       startTime
@@ -234,12 +236,14 @@ async function processBatchedMessages(phoneNumber) {
     messageCount: messages.length
   });
 
-  const combinedMessage = messages.map(m => m.message).join('\n\n');
+  const combinedText = messages.map(m => m.message).filter(Boolean).join('\n\n');
+  const combinedImages = messages.map(m => m.image).filter(Boolean);
 
   try {
     await processIncomingMessage(
       phoneNumber,
-      combinedMessage,
+      combinedText,
+      combinedImages,
       firstMessage.name,
       firstMessage.messageId
     );
@@ -265,14 +269,12 @@ async function processBatchedMessages(phoneNumber) {
   }
 }
 
-async function processIncomingMessage(phoneNumber, text, userName, messageId) {
+async function processIncomingMessage(phoneNumber, text, images, userName, messageId) {
   try {
     const formattedPhone = metaClient.constructor.formatPhoneNumber(phoneNumber);
     logger.info(`👤 User: ${userName} (${formattedPhone})`);
 
     // Get or create user
-    // We default to 'User' even if Meta provides a name, 
-    // to ensure Talwinder's onboarding (asking for name) triggers.
     let [user, created] = await db.User.findOrCreate({
       where: { phoneNumber: formattedPhone },
       defaults: { name: 'User' }
@@ -282,29 +284,50 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
       await user.update({ lastInteraction: new Date() });
     }
 
+    // Process Images if any
+    let imageParts = [];
+    if (images && images.length > 0) {
+      for (const img of images) {
+        const url = await metaClient.getMediaUrl(img.id);
+        if (url) {
+          const buffer = await metaClient.downloadMedia(url);
+          if (buffer) {
+            imageParts.push({
+              type: 'image',
+              data: buffer.toString('base64'),
+              mimeType: img.mime_type || 'image/jpeg'
+            });
+          }
+        }
+      }
+    }
+
     // Save conversation
     await db.Conversation.create({
       userId: user.id,
       messageType: 'incoming',
-      content: text
+      content: text + (images?.length > 0 ? ` [Sent ${images.length} image(s)]` : '')
     });
 
     // Get context
     const history = await personalityEngine.getConversationHistory(user.id);
     const memoryContext = await memoryService.getMemoryContext(user.id);
-
-    // Use the name from our DB (which might be 'User' if new) for the prompt context
     const displayName = user.name || 'User';
 
     const systemPrompt = `${prompts.systemPrompt}\n\nUSER NAME: ${displayName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
+    // Build the user content parts for Gemini
+    const userMessageContent = [];
+    if (text) userMessageContent.push({ type: 'text', text });
+    imageParts.forEach(img => userMessageContent.push(img));
+
     // Call Gemini
-    logger.info('🤖 Calling Gemini AI...');
+    logger.info('🤖 Calling Gemini AI (Multi-modal)...');
     let aiResponse;
     try {
       aiResponse = await geminiClient.chatWithTools(
         systemPrompt,
-        [...history, { role: 'user', content: text }],
+        [...history, { role: 'user', content: userMessageContent }],
         tools
       );
     } catch (aiError) {

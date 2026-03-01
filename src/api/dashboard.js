@@ -49,4 +49,14 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// GET /api/dashboard/report
+router.get('/report', async (req, res) => {
+  try {
+    const report = await ideaService.getReport();
+    res.json({ success: true, report });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

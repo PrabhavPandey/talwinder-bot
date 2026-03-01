@@ -21,6 +21,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: false
     },
+    rawDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    evolvedDescription: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     category: {
       type: DataTypes.ENUM('growth', 'engineering', 'product', 'org', 'culture', 'operations', 'other'),
       defaultValue: 'other',

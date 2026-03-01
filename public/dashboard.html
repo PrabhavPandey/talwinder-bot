@@ -87,8 +87,60 @@
         <h1 class="text-3xl font-bold tracking-tight mb-2">operational stats</h1>
         <p class="text-gray-500 text-sm">performance metrics and idea pipeline for grapevine saarthi.</p>
       </div>
-      <div class="text-[10px] uppercase font-bold text-gray-300 tracking-[0.2em]">last updated: now</div>
+      <div class="flex items-center gap-4">
+        <button onclick="generateReport()"
+          class="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-gray-800 transition-all">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          generate report
+        </button>
+        <div class="text-[10px] uppercase font-bold text-gray-300 tracking-[0.2em]">last updated: now</div>
+      </div>
     </header>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="fixed inset-0 bg-white/95 z-50 hidden overflow-y-auto backdrop-blur-sm">
+      <div class="max-w-4xl mx-auto py-20 px-10">
+        <div class="flex justify-between items-start mb-16 border-b border-subtle pb-10">
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-2 h-6 bg-black rounded-full"></div>
+              <span class="font-bold text-xl uppercase tracking-tighter">grapevine / innovation report</span>
+            </div>
+            <p class="text-gray-400 text-xs" id="reportDate">generated on ...</p>
+          </div>
+          <button onclick="closeReport()" class="p-2 hover:bg-subtle rounded-full transition-all">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-10 mb-20" id="reportMetrics">
+          <!-- Metrics injected -->
+        </div>
+
+        <div class="grid grid-cols-2 gap-10 mb-20">
+          <div class="border border-subtle p-8 rounded-3xl">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-8">category distribution</h3>
+            <canvas id="categoryChart" height="200"></canvas>
+          </div>
+          <div class="border border-subtle p-8 rounded-3xl">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-8">priority breakdown</h3>
+            <canvas id="priorityChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-8">prioritized ideas (bangers first)
+        </h3>
+        <div id="reportIdeaList" class="space-y-6">
+          <!-- Prioritized ideas injected -->
+        </div>
+
+        <div class="mt-20 pt-10 border-t border-subtle text-center">
+          <button onclick="window.print()"
+            class="text-gray-400 text-[10px] font-bold uppercase tracking-widest hover:text-black transition-all">print
+            / save as pdf</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Key Metrics Grid -->
     <div class="grid grid-cols-4 gap-6 mb-12" id="statsGrid">
@@ -181,7 +233,7 @@
             <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">idea details</th>
             <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest w-24">utility</th>
             <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">status</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">ship date</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">priority</th>
           </tr>
         </thead>
         <tbody id="ideasGrid" class="divide-y divide-subtle">
@@ -194,7 +246,128 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    let currentReportCharts = [];
+
+    function closeReport() {
+      document.getElementById('reportModal').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    async function generateReport() {
+      const modal = document.getElementById('reportModal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        const res = await fetch('/api/dashboard/report');
+        const data = await res.json();
+        if (data.success) {
+          renderReport(data.report);
+        }
+      } catch (err) { console.error('Report generation error:', err); }
+    }
+
+    function renderReport(report) {
+      document.getElementById('reportDate').textContent = `generated on ${new Date(report.generatedAt).toLocaleString()} for grapevine innovation board`;
+
+      // Render Metrics
+      const mContainer = document.getElementById('reportMetrics');
+      const metrics = [
+        { label: 'total ideas', val: report.metrics.total },
+        { label: 'avg utility', val: report.metrics.avgUtility },
+        { label: 'avg novelty', val: report.metrics.avgNovelty }
+      ];
+      mContainer.innerHTML = metrics.map(m => `
+        <div class="border border-subtle p-8 rounded-3xl">
+          <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-2">${m.label}</p>
+          <p class="text-4xl font-bold">${m.val}</p>
+        </div>
+      `).join('');
+
+      // Render Ideas sorted by priority/utility
+      const list = document.getElementById('reportIdeaList');
+      list.innerHTML = report.ideas.map(i => `
+        <div class="border border-subtle p-8 rounded-3xl hover:bg-subtle transition-all duration-300">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <p class="text-[8px] font-bold uppercase tracking-widest text-gray-400 mb-1">${i.category} / by ${i.user}</p>
+              <h4 class="text-lg font-bold tracking-tight">${i.title || 'Untitled Idea'}</h4>
+            </div>
+            <span class="text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${i.priority === 'critical' ? 'bg-black text-white' : 'bg-subtle text-gray-500'}">
+              ${i.priority}
+            </span>
+          </div>
+          <p class="text-sm text-gray-600 mb-6 leading-relaxed">${i.description}</p>
+          <div class="flex gap-10">
+            <div>
+              <p class="text-[7px] font-bold uppercase tracking-widest text-gray-300 mb-1">utility</p>
+              <p class="text-xs font-bold">${i.utility}/5</p>
+            </div>
+            <div>
+              <p class="text-[7px] font-bold uppercase tracking-widest text-gray-300 mb-1">novelty</p>
+              <p class="text-xs font-bold">${i.novelty}/5</p>
+            </div>
+            <div>
+              <p class="text-[7px] font-bold uppercase tracking-widest text-gray-300 mb-1">suggested sponsor</p>
+              <p class="text-xs font-bold">${i.suggestedSponsor || 'TBD'}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Charts
+      renderCharts(report);
+      lucide.createIcons();
+    }
+
+    function renderCharts(report) {
+      currentReportCharts.forEach(c => c.destroy());
+      currentReportCharts = [];
+
+      const catCounts = {};
+      const prioCounts = {};
+
+      report.ideas.forEach(i => {
+        catCounts[i.category] = (catCounts[i.category] || 0) + 1;
+        prioCounts[i.priority] = (prioCounts[i.priority] || 0) + 1;
+      });
+
+      const ctx1 = document.getElementById('categoryChart').getContext('2d');
+      const chart1 = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(catCounts),
+          datasets: [{
+            data: Object.values(catCounts),
+            backgroundColor: ['#000', '#222', '#444', '#666', '#888', '#aaa'],
+            borderWidth: 0
+          }]
+        },
+        options: { plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+      });
+      currentReportCharts.push(chart1);
+
+      const ctx2 = document.getElementById('priorityChart').getContext('2d');
+      const chart2 = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(prioCounts),
+          datasets: [{
+            data: Object.values(prioCounts),
+            backgroundColor: '#000',
+            barThickness: 20
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+      currentReportCharts.push(chart2);
+    }
+
     function setStatus(val) {
       document.getElementById('statusFilter').value = val;
       fetchIdeas();
@@ -303,8 +476,8 @@
           <td class="px-6 py-6 font-bold uppercase text-[9px] tracking-[0.15em] ${statusColors[idea.status] || ''}">
             ${idea.status}
           </td>
-          <td class="px-6 py-6 text-[10px] font-bold text-gray-400">
-            ${idea.targetExecutionDate || 'TBD'}
+          <td class="px-6 py-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            ${idea.priority || 'medium'}
           </td>
         `;
 

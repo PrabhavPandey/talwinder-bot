@@ -83,14 +83,30 @@ class GeminiClient {
 
       const history = this.convertMessagesToGeminiFormat(messages.slice(0, -1));
       const lastMessage = messages[messages.length - 1];
-      const userMessage = typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content);
+
+      let userParts = [];
+      if (Array.isArray(lastMessage.content)) {
+        userParts = lastMessage.content.map(part => {
+          if (part.type === 'image') {
+            return {
+              inlineData: {
+                data: part.data,
+                mimeType: part.mimeType || 'image/jpeg'
+              }
+            };
+          }
+          return { text: part.text || part.content || "" };
+        });
+      } else {
+        userParts = [{ text: typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content) }];
+      }
 
       const chat = model.startChat({
         history: history,
         generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 }
       });
 
-      const result = await chat.sendMessage(userMessage);
+      const result = await chat.sendMessage(userParts);
       const response = result.response;
 
       const content = [];

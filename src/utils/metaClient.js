@@ -98,6 +98,34 @@ class MetaClient {
     logger.debug(`[typing indicator] -> ${to}`);
   }
 
+  async getMediaUrl(mediaId) {
+    try {
+      const response = await axios.get(
+        `https://graph.facebook.com/${this.apiVersion}/${mediaId}`,
+        {
+          headers: { 'Authorization': `Bearer ${this.accessToken}` }
+        }
+      );
+      return response.data.url;
+    } catch (error) {
+      logger.error('Meta Media URL error:', error.response?.data || error.message);
+      return null;
+    }
+  }
+
+  async downloadMedia(url) {
+    try {
+      const response = await axios.get(url, {
+        headers: { 'Authorization': `Bearer ${this.accessToken}` },
+        responseType: 'arraybuffer'
+      });
+      return Buffer.from(response.data);
+    } catch (error) {
+      logger.error('Meta Media Download error:', error.response?.data || error.message);
+      return null;
+    }
+  }
+
   static formatPhoneNumber(phoneNumber) {
     return phoneNumber.replace(/[^0-9]/g, '');
   }

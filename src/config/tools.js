@@ -1,13 +1,31 @@
 const tools = [
   {
+    name: "capture_raw_idea",
+    description: "Use this immediately when a user shares a raw, initial idea. This ensures the spark is never lost before brainstorming starts.",
+    input_schema: {
+      type: "object",
+      properties: {
+        rawDescription: {
+          type: "string",
+          description: "The raw, unrefined idea as shared by the user."
+        }
+      },
+      required: ["rawDescription"]
+    }
+  },
+  {
     name: "submit_idea",
-    description: "Submit a new idea for Grapevine. Use this when the user describes an idea they have. Analyze it deeply against the company charter.",
+    description: "Finalize and push the evolved idea to the dashboard. Use this ONLY after confirmation from the user.",
     input_schema: {
       type: "object",
       properties: {
         description: {
           type: "string",
-          description: "The full description of the idea."
+          description: "The final, brainstormed description of the idea."
+        },
+        rawDescription: {
+          type: "string",
+          description: "The original raw idea (for reference)."
         },
         category: {
           type: "string",
