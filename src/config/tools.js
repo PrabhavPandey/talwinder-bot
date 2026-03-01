@@ -96,6 +96,20 @@ const tools = [
     }
   },
   {
+    name: "set_user_name",
+    description: "Set or update the user's name. Use this during onboarding once the user introduces themselves.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "The user's full name or preferred name."
+        }
+      },
+      required: ["name"]
+    }
+  },
+  {
     name: "get_my_ideas",
     description: "Get a list of ideas previously submitted by the user.",
     input_schema: {

@@ -288,11 +288,13 @@ async function processIncomingMessage(phoneNumber, text, userName, messageId) {
     });
 
     // Get context
-    logger.info('🧠 Fetching context and memory...');
     const history = await personalityEngine.getConversationHistory(user.id);
     const memoryContext = await memoryService.getMemoryContext(user.id);
 
-    const systemPrompt = `${prompts.systemPrompt}\n\nUSER NAME: ${userName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+    // Use the name from our DB (which might be 'User' if new) for the prompt context
+    const displayName = user.name || 'User';
+
+    const systemPrompt = `${prompts.systemPrompt}\n\nUSER NAME: ${displayName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
     // Call Gemini
     logger.info('🤖 Calling Gemini AI...');

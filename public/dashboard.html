@@ -82,7 +82,7 @@
     </header>
 
     <!-- Metrics Section -->
-    <div class="grid grid-cols-3 gap-8 mb-12" id="statsGrid">
+    <div class="grid grid-cols-2 gap-8 mb-12" id="statsGrid">
       <div class="border border-subtle p-6 rounded-xl">
         <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">total submissions</div>
         <div class="text-4xl font-bold" id="totalIdeas">-</div>
@@ -90,10 +90,6 @@
       <div class="border border-subtle p-6 rounded-xl">
         <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">sponsored ideas</div>
         <div class="text-4xl font-bold" id="sponsoredIdeas">-</div>
-      </div>
-      <div class="border border-subtle p-6 rounded-xl">
-        <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">avg novelty</div>
-        <div class="text-4xl font-bold" id="avgNovelty">-</div>
       </div>
     </div>
 
@@ -129,7 +125,7 @@
           <tr>
             <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">contributor</th>
             <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">idea</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">scores</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">utility</th>
             <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">status</th>
             <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">ship date</th>
           </tr>
@@ -152,7 +148,6 @@
         if (data.success) {
           document.getElementById('totalIdeas').textContent = data.stats.total;
           document.getElementById('sponsoredIdeas').textContent = data.stats.sponsored;
-          document.getElementById('avgNovelty').textContent = `${data.stats.novelty}/5`;
         }
       } catch (err) { console.error('Stats fetch error:', err); }
     }
@@ -170,7 +165,7 @@
         if (data.success) {
           renderIdeas(data.ideas);
           const placeholder = document.getElementById('noIdeasPlaceholder');
-          ideas.length === 0 ? placeholder.classList.remove('hidden') : placeholder.classList.add('hidden');
+          data.ideas.length === 0 ? placeholder.classList.remove('hidden') : placeholder.classList.add('hidden');
         }
       } catch (err) { console.error('Ideas fetch error:', err); }
     }
@@ -195,15 +190,8 @@
             </span>
           </td>
           <td class="px-6 py-6">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-[9px] text-gray-400 uppercase font-bold w-12">novelty</span>
-                <span class="text-black font-bold text-xs">${idea.noveltyScore || 0}/5</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-[9px] text-gray-400 uppercase font-bold w-12">utility</span>
-                <span class="text-black font-bold text-xs">${idea.utilityScore || 0}/5</span>
-              </div>
+            <div class="flex items-center gap-2">
+              <span class="text-black font-bold text-xs">${idea.utilityScore || 0}/5</span>
             </div>
           </td>
           <td class="px-6 py-6 text-[10px] font-bold uppercase tracking-widest">

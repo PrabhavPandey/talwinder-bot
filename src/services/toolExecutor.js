@@ -50,6 +50,10 @@ class ToolExecutor {
           }
           return { success: false, error: "missing messageId for reaction" };
 
+        case 'set_user_name':
+          await user.update({ name: input.name });
+          return { success: true, message: `name updated to ${input.name}` };
+
         case 'get_my_ideas':
           const ideas = await ideaService.getUserIdeas(user.id);
           return {
