@@ -13,81 +13,30 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    description: {
+    rawDescription: {
       type: DataTypes.TEXT,
       allowNull: false
     },
-    rawDescription: {
+    refinedDescription: {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    evolvedDescription: {
+    imageContext: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    imageBase64: {
       type: DataTypes.TEXT,
       allowNull: true
     },
     category: {
-      type: DataTypes.ENUM('growth', 'engineering', 'product', 'org', 'culture', 'operations', 'other'),
+      type: DataTypes.ENUM('growth', 'engineering', 'product', 'org', 'culture', 'other'),
       defaultValue: 'other',
       allowNull: false
     },
-    // Evaluation scores (1-5)
-    noveltyScore: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
-    },
-    utilityScore: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
-    },
-    charterAlignmentScore: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
-    },
-    alignmentReasoning: {
-      type: DataTypes.TEXT
-    },
-    // Execution Mapping
-    executorType: {
-      type: DataTypes.ENUM('user', 'someone_else', 'group'),
-      defaultValue: 'user'
-    },
-    executorDetails: {
-      type: DataTypes.TEXT
-    },
-    priority: {
-      type: DataTypes.ENUM('low', 'medium', 'high', 'critical'),
-      defaultValue: 'medium'
-    },
     status: {
-      type: DataTypes.ENUM('pending', 'evaluating', 'sponsored', 'not_now', 'rejected', 'executed'),
-      defaultValue: 'pending'
-    },
-    // Sponsorship info
-    sponsorSuggestion: {
-      type: DataTypes.STRING
-    },
-    sponsorReasoning: {
-      type: DataTypes.TEXT
-    },
-    feedback: {
-      type: DataTypes.TEXT
-    },
-    // Execution & Follow-up
-    targetExecutionDate: {
-      type: DataTypes.DATEONLY,
-      allowNull: true
-    },
-    followUpStatus: {
-      type: DataTypes.ENUM('none', 'scheduled', 'sent', 'acknowledged'),
-      defaultValue: 'none'
-    },
-    metadata: {
-      type: DataTypes.JSONB,
-      defaultValue: {}
+      type: DataTypes.ENUM('evaluating', 'captured'),
+      defaultValue: 'evaluating'
     }
   }, {
     tableName: 'ideas',

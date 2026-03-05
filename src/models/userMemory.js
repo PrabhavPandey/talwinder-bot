@@ -16,19 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     facts: {
       type: DataTypes.JSONB,
-      defaultValue: [] // Array of { fact: string, source: string, date: Date }
-    },
-    preferences: {
-      type: DataTypes.JSONB,
-      defaultValue: {}
-    },
-    emotionalProfile: {
-      type: DataTypes.JSONB,
-      defaultValue: {
-        dominantEmotion: 'neutral',
-        positivityScore: 0.5,
-        energyLevel: 'standard'
-      }
+      defaultValue: []
     },
     lastSummary: {
       type: DataTypes.TEXT

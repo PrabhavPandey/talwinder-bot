@@ -300,6 +300,10 @@ async function processIncomingMessage(phoneNumber, text, images, userName, messa
           }
         }
       }
+      // Stash the first image to be associated with an idea later if needed
+      if (imageParts.length > 0) {
+        toolExecutor.setPendingImage(imageParts[0].data);
+      }
     }
 
     // Save conversation
@@ -376,9 +380,9 @@ async function processIncomingMessage(phoneNumber, text, images, userName, messa
     if (!finalMessage || finalMessage.trim() === '') {
       logger.warn('Empty response from AI, checking tool results', { toolIterations });
       if (toolIterations > 0) {
-        finalMessage = "done. what else?";
+        finalMessage = "done.";
       } else {
-        finalMessage = "got it. let's get back to the ideas. what fire are you sitting on?";
+        finalMessage = "hmm something didn't go through on my end. say that again?";
       }
     }
 

@@ -61,6 +61,75 @@ class GeminiClient {
     return converted;
   }
 
+  /**
+   * Robustly extracts text and function calls from a Gemini response.
+   * Handles models like gemini-2.5-flash which may return "thinking" (thought) parts.
+   */
+  _extractResponseParts(response) {
+    const content = [];
+    let hasFunctionCalls = false;
+
+    // Direct access to candidate parts provides the most reliable extraction
+    const candidates = response.candidates || [];
+    const parts = candidates[0]?.content?.parts || [];
+
+    for (const part of parts) {
+      // 1. Skip "thought" (thinking) parts used by Reasoning models
+      if (part.thought) {
+        logger.debug('Skipping thinking part in Gemini response');
+        continue;
+      }
+
+      // 2. Extract Text
+      if (part.text && part.text.trim()) {
+        content.push({ type: 'text', text: part.text });
+      }
+
+      // 3. Extract Function Calls
+      if (part.functionCall) {
+        hasFunctionCalls = true;
+        content.push({
+          type: 'tool_use',
+          id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: part.functionCall.name,
+          input: part.functionCall.args || {}
+        });
+      }
+    }
+
+    // Fallback: Use standard SDK methods if direct parsing yielded nothing
+    if (content.length === 0) {
+      try {
+        const text = response.text();
+        if (text && text.trim()) {
+          content.push({ type: 'text', text });
+        }
+      } catch (err) {
+        // text() throws if no text part exists
+      }
+
+      try {
+        const fCalls = response.functionCalls();
+        if (fCalls && fCalls.length > 0) {
+          hasFunctionCalls = true;
+          fCalls.forEach(call => {
+            content.push({
+              type: 'tool_use',
+              id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              name: call.name,
+              input: call.args || {}
+            });
+          });
+        }
+      } catch (err) {
+        // some SDK versions might fail or return nothing if null
+      }
+    }
+
+    const stopReason = hasFunctionCalls ? 'tool_use' : 'end_turn';
+    return { content, stopReason };
+  }
+
   async chatWithTools(systemPrompt, messages, tools, maxTokens = 2048) {
     if (!this.client) throw new Error('Gemini client not initialized');
 
@@ -109,29 +178,7 @@ class GeminiClient {
       const result = await chat.sendMessage(userParts);
       const response = result.response;
 
-      const content = [];
-      const functionCalls = response.functionCalls();
-
-      // Always try to extract text, even if tools were called
-      try {
-        const text = response.text();
-        if (text) content.push({ type: 'text', text });
-      } catch (e) {
-        // text() throws if there is no text part (e.g. only function calls)
-      }
-
-      if (functionCalls && functionCalls.length > 0) {
-        functionCalls.forEach(call => {
-          content.push({
-            type: 'tool_use',
-            id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name: call.name,
-            input: call.args
-          });
-        });
-      }
-
-      const stopReason = functionCalls && functionCalls.length > 0 ? 'tool_use' : 'end_turn';
+      const { content, stopReason } = this._extractResponseParts(response);
 
       return {
         content,
@@ -156,29 +203,7 @@ class GeminiClient {
       const result = await chatInstance.sendMessage(functionResponses);
       const response = result.response;
 
-      const content = [];
-      const functionCalls = response.functionCalls();
-
-      // Always try to extract text after tool results
-      try {
-        const text = response.text();
-        if (text) content.push({ type: 'text', text });
-      } catch (e) {
-        // text() throws if empty
-      }
-
-      if (functionCalls && functionCalls.length > 0) {
-        functionCalls.forEach(call => {
-          content.push({
-            type: 'tool_use',
-            id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name: call.name,
-            input: call.args
-          });
-        });
-      }
-
-      const stopReason = functionCalls && functionCalls.length > 0 ? 'tool_use' : 'end_turn';
+      const { content, stopReason } = this._extractResponseParts(response);
 
       return {
         content,

@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../models');
 const ideaService = require('../services/ideaService');
 
-// GET /api/dashboard/ideas?status=sponsored&category=growth&user=tanmay
+// GET /api/dashboard/ideas?status=captured&category=growth&user=tanmay
 router.get('/ideas', async (req, res) => {
   const { status, category, user: userQuery } = req.query;
   const where = {};
@@ -30,10 +30,23 @@ router.get('/ideas', async (req, res) => {
     const ideas = await db.Idea.findAll({
       where,
       include: [userInclude],
+      attributes: [
+        'id', 'rawDescription', 'refinedDescription',
+        'imageContext', 'imageBase64', 'category', 'status', 'createdAt'
+      ],
       order: [['createdAt', 'DESC']]
     });
 
-    res.json({ success: true, count: ideas.length, ideas });
+    // Handle image rendering: move to data URI if present
+    const ideasWithImages = ideas.map(idea => {
+      const plain = idea.get({ plain: true });
+      if (plain.imageBase64) {
+        plain.imageDataUri = `data:image/jpeg;base64,${plain.imageBase64}`;
+      }
+      return plain;
+    });
+
+    res.json({ success: true, count: ideasWithImages.length, ideas: ideasWithImages });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

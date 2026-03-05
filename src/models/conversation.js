@@ -20,26 +20,6 @@ module.exports = (sequelize, DataTypes) => {
     content: {
       type: DataTypes.TEXT,
       allowNull: false
-    },
-    watiMessageId: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    intent: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    entities: {
-      type: DataTypes.JSONB,
-      defaultValue: {}
-    },
-    processingTime: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    metadata: {
-      type: DataTypes.JSONB,
-      defaultValue: {}
     }
   }, {
     tableName: 'conversations',
