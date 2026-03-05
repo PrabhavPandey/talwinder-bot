@@ -4,7 +4,7 @@ const logger = require('./logger');
 class GeminiClient {
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
-    this.modelName = process.env.AI_MODEL || 'gemini-1.5-pro';
+    this.modelName = 'gemini-1.5-pro';
 
     if (!this.apiKey) {
       logger.warn('GEMINI_API_KEY not configured');
