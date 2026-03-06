@@ -8,7 +8,11 @@ router.get('/ideas', async (req, res) => {
   const { status, category, user: userQuery } = req.query;
   const where = {};
 
-  if (status) where.status = status;
+  if (status) {
+    where.status = status;
+  } else {
+    where.status = 'captured'; // Do not show 'evaluating' drafts by default
+  }
   if (category) where.category = category;
 
   const userInclude = {

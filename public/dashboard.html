@@ -229,11 +229,11 @@
       <table class="w-full text-left text-sm">
         <thead class="bg-white text-gray-400 font-medium border-b border-subtle">
           <tr>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">contributor</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">idea details</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest w-24">utility</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">status</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">priority</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Submitted On</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Function</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">The Idea</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Supporting Image</th>
+            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">About / Context</th>
           </tr>
         </thead>
         <tbody id="ideasGrid" class="divide-y divide-subtle">
@@ -456,29 +456,23 @@
 
         row.innerHTML = `
           <td class="px-6 py-6">
-            <p class="font-bold text-xs text-black">${idea.user.name}</p>
-            <p class="text-[9px] text-gray-400">${idea.user.phoneNumber}</p>
+            <p class="font-bold text-xs text-black">${new Date(idea.createdAt).toLocaleString()}</p>
+            <p class="text-[9px] text-gray-400 mt-1">by ${idea.user.name} (${idea.user.phoneNumber})</p>
           </td>
-          <td class="px-6 py-6 max-w-sm">
-            <p class="text-xs text-gray-600 line-clamp-2 mb-2 font-medium">${idea.description}</p>
-            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-400 border border-subtle px-1.5 py-0.5 rounded-md">
+          <td class="px-6 py-6">
+            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-800 border border-subtle px-2 py-1 bg-gray-50 rounded-md">
               ${idea.category}
             </span>
           </td>
+          <td class="px-6 py-6 max-w-sm">
+            <p class="text-xs text-black font-semibold line-clamp-3">${idea.refinedDescription || idea.rawDescription}</p>
+          </td>
           <td class="px-6 py-6">
-            <div class="flex items-center gap-2">
-              <span class="text-black font-bold text-xs">${idea.utilityScore || 0}</span>
-              <div class="w-12 h-1 bg-gray-100 rounded-full overflow-hidden">
-                <div class="h-full bg-black" style="width: ${(idea.utilityScore || 0) * 20}%"></div>
-              </div>
-            </div>
+            ${idea.imageDataUri ? "<img src='" + idea.imageDataUri + "' class='w-16 h-16 object-cover border border-subtle rounded-md cursor-pointer hover:opacity-80 transition-all shadow-sm' onclick='window.open(this.src)' />" : '<span class="text-[10px] text-gray-300 italic">none</span>'}
           </td>
-          <td class="px-6 py-6 font-bold uppercase text-[9px] tracking-[0.15em] ${statusColors[idea.status] || ''}">
-            ${idea.status}
-          </td>
-          <td class="px-6 py-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-            ${idea.priority || 'medium'}
-          </td>
+        <td class="px-6 py-6 max-w-sm">
+          <p class="text-[10px] text-gray-500 line-clamp-3">${idea.imageContext || idea.rawDescription || '-'}</p>
+        </td>
         `;
 
         grid.appendChild(row);
