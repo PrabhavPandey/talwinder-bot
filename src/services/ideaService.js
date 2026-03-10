@@ -38,11 +38,13 @@ class IdeaService {
       };
 
       if (rawDescription && rawDescription !== existing.rawDescription) {
-        updatedData.rawDescription = existing.rawDescription + "\n\nFollow-up: " + rawDescription;
+        const base = existing.rawDescription || "";
+        updatedData.rawDescription = (base ? base + "\n\nFollow-up: " : "") + rawDescription;
       }
 
       if (refinedDescription && refinedDescription !== existing.refinedDescription) {
-        updatedData.refinedDescription = existing.refinedDescription + "\n\nAdditional Context: " + refinedDescription;
+        const base = existing.refinedDescription || "";
+        updatedData.refinedDescription = (base ? base + "\n\nAdditional Context: " : "") + refinedDescription;
       }
 
       if (imageContext && imageContext !== existing.imageContext) {
