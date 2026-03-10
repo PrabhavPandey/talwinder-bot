@@ -334,7 +334,7 @@ async function processIncomingMessage(phoneNumber, text, images, userName, messa
     // Get product context grounding
     const productContext = await contextService.getContextGrounding();
 
-    const systemPrompt = `${prompts.systemPrompt}\n\n${productContext}\n\nUSER NAME: ${displayName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+    const systemPrompt = `YOU ARE GROUNDED IN THE FOLLOWING PRODUCT DOCUMENTS. USE THIS CONTEXT TO INFORM YOUR RESPONSES ABOUT TAL, ROUND1, AND GRAPEVINE:\n\n${productContext}\n\n${prompts.systemPrompt}\n\nUSER NAME: ${displayName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
     // Build the user content parts for Gemini
     const userMessageContent = [];

@@ -36,9 +36,16 @@ class ContextService {
                         if (extension === '.txt' || extension === '.md') {
                             content = fs.readFileSync(filePath, 'utf8');
                         } else if (extension === '.rtf') {
-                            // Basic RTF to text extraction (very simple)
+                            // Basic RTF to text extraction
                             const raw = fs.readFileSync(filePath, 'utf8');
-                            content = raw.replace(/\\rtf1[\s\S]*?\{[\s\S]*\}|\\(?![\\{}])[a-z0-9-]+ ?|[{}]/gi, '').trim();
+                            // Remove RTF groups, control words, and special characters
+                            content = raw
+                                .replace(/\\rtf1[\s\S]*?{\\fonttbl[\s\S]*?}|{\\colortbl[\s\S]*?}|{\\\*\\expandedcolortbl[\s\S]*?}/g, '') // Remove headers/tables
+                                .replace(/\\([a-z0-9-]+) ?/gi, '') // Remove control words
+                                .replace(/[{}]/g, '') // Remove braces
+                                .replace(/\\'/g, '') // Remove special character markers
+                                .replace(/\n\n+/g, '\n') // Collapse newlines
+                                .trim();
                         } else if (extension === '.docx') {
                             // Try to extract text from docx using unzip and sed if on a system that supports it
                             try {
