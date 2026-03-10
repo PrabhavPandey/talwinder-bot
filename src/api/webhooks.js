@@ -8,6 +8,7 @@ const personalityEngine = require('../services/personalityEngine');
 const memoryService = require('../services/memoryService');
 const tools = require('../config/tools');
 const prompts = require('../config/prompts');
+const contextService = require('../services/contextService');
 const logger = require('../utils/logger');
 
 // ============================================================
@@ -330,7 +331,10 @@ async function processIncomingMessage(phoneNumber, text, images, userName, messa
     const memoryContext = await memoryService.getMemoryContext(user.id);
     const displayName = user.name || 'User';
 
-    const systemPrompt = `${prompts.systemPrompt}\n\nUSER NAME: ${displayName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+    // Get product context grounding
+    const productContext = await contextService.getContextGrounding();
+
+    const systemPrompt = `${prompts.systemPrompt}\n\n${productContext}\n\nUSER NAME: ${displayName}\nUSER MEMORY:\n${memoryContext}\n\nCURRENT TIME: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
 
     // Build the user content parts for Gemini
     const userMessageContent = [];
