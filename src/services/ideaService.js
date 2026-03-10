@@ -13,35 +13,66 @@ class IdeaService {
   }
 
   async createIdea(userId, { rawDescription, refinedDescription, imageContext, imageBase64, category }) {
-    // Find latest raw idea from this user if it exists and is still in 'evaluating' status
+    // THREADING FIX: Find the most recent idea for this user, regardless of status, 
+    // to see if we should append context instead of creating a new entry.
+    // We look for ideas from the last 1 hour to consider them part of the "same thread".
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
     const existing = await db.Idea.findOne({
-      where: { userId, status: 'evaluating' },
+      where: {
+        userId,
+        status: { [Op.in]: ['evaluating', 'captured'] },
+        createdAt: { [Op.gte]: oneHourAgo }
+      },
       order: [['createdAt', 'DESC']]
     });
 
-    const ideaData = {
-      userId,
-      rawDescription: rawDescription || refinedDescription,
-      refinedDescription: refinedDescription || rawDescription,
-      imageContext: imageContext || null,
-      imageBase64: imageBase64 || null,
-      category: category || 'other',
-      status: 'captured'
-    };
-
     let idea;
     if (existing) {
-      idea = await existing.update(ideaData);
-    } else {
-      idea = await db.Idea.create(ideaData);
-    }
+      logger.info(`Threading follow-up into existing idea: ${existing.id}`);
 
-    // Update user stats
-    const user = await db.User.findByPk(userId);
-    await user.update({
-      totalIdeas: user.totalIdeas + 1,
-      lastInteraction: new Date()
-    });
+      // Accumulate descriptions and context
+      const updatedData = {
+        category: category || existing.category || 'other',
+        status: 'captured' // Ensure it moves to captured if it was evaluating
+      };
+
+      if (rawDescription && rawDescription !== existing.rawDescription) {
+        updatedData.rawDescription = existing.rawDescription + "\n\nFollow-up: " + rawDescription;
+      }
+
+      if (refinedDescription && refinedDescription !== existing.refinedDescription) {
+        updatedData.refinedDescription = existing.refinedDescription + "\n\nAdditional Context: " + refinedDescription;
+      }
+
+      if (imageContext && imageContext !== existing.imageContext) {
+        updatedData.imageContext = existing.imageContext ? (existing.imageContext + "\n" + imageContext) : imageContext;
+      }
+
+      if (imageBase64) {
+        updatedData.imageBase64 = imageBase64; // Keep latest image
+      }
+
+      idea = await existing.update(updatedData);
+    } else {
+      // Create new idea entry
+      idea = await db.Idea.create({
+        userId,
+        rawDescription: rawDescription || refinedDescription,
+        refinedDescription: refinedDescription || rawDescription,
+        imageContext,
+        imageBase64,
+        category: category || 'other',
+        status: 'captured'
+      });
+
+      // Update user stats only for NEW ideas
+      const user = await db.User.findByPk(userId);
+      await user.update({
+        totalIdeas: user.totalIdeas + 1,
+        lastInteraction: new Date()
+      });
+    }
 
     return idea;
   }

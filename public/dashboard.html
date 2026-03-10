@@ -246,7 +246,7 @@
 
         <section>
           <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-muted mb-4">context / about</h3>
-          <p id="modalIdeaContext" class="text-sm text-muted leading-relaxed"></p>
+          <p id="modalIdeaContext" class="text-sm text-muted leading-relaxed whitespace-pre-wrap"></p>
         </section>
 
         <div class="pt-10 border-t border-subtle flex justify-between items-center">
@@ -269,7 +269,7 @@
     function showSection(id) {
       document.querySelectorAll('main[id^="section-"]').forEach(s => s.classList.add('hidden'));
       document.getElementById(`section-${id}`).classList.remove('hidden');
-      
+
       document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
       document.getElementById(`nav-${id}`).classList.add('active');
       lucide.createIcons(); // Re-render icons for the newly visible section
@@ -282,8 +282,8 @@
     }
 
     // Initialize theme
-    if (localStorage.getItem('theme') === 'dark' || 
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (localStorage.getItem('theme') === 'dark' ||
+      (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.body.classList.add('dark');
     }
 
