@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
     content: {
       type: DataTypes.TEXT,
       allowNull: false
+    },
+    waMessageId: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: true // Nullable for outgoing or old records
     }
   }, {
     tableName: 'conversations',

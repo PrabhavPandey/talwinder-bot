@@ -129,9 +129,20 @@ router.post('/webhook', async (req, res) => {
     // DEDUPLICATION: Skip duplicate webhooks
     const dedupKey = `${phoneNumber}_${messageId}`;
     if (processedMessageIds.has(dedupKey)) {
-      logger.debug('Skipping duplicate webhook', { phoneNumber, messageId });
+      logger.debug('Skipping duplicate webhook (memory)', { phoneNumber, messageId });
       return res.status(200).json({ success: true });
     }
+
+    // PERSISTENT DEDUPLICATION: Check database to catch retries across restarts
+    const existingMessage = await db.Conversation.findOne({
+      where: { waMessageId: messageId }
+    });
+    if (existingMessage) {
+      logger.info('Skipping duplicate webhook (database)', { phoneNumber, messageId });
+      processedMessageIds.set(dedupKey, Date.now()); // Sync with memory-cache
+      return res.status(200).json({ success: true });
+    }
+
     processedMessageIds.set(dedupKey, Date.now());
 
     // Respond to Meta immediately
@@ -310,7 +321,8 @@ async function processIncomingMessage(phoneNumber, text, images, userName, messa
     await db.Conversation.create({
       userId: user.id,
       messageType: 'incoming',
-      content: text + (images?.length > 0 ? ` [Sent ${images.length} image(s)]` : '')
+      content: text + (images?.length > 0 ? ` [Sent ${images.length} image(s)]` : ''),
+      waMessageId: messageId
     });
 
     // Get context
@@ -398,6 +410,9 @@ async function processIncomingMessage(phoneNumber, text, images, userName, messa
     // INTELLIGENT RESPONSE SPLITTING
     // Split into separate WhatsApp bubbles
     // ============================================================
+    // Convert any literal \n produced by the AI into actual newlines
+    finalMessage = finalMessage.replace(/\\n/g, '\n');
+
     let parts = finalMessage
       .split(/\n\n+/)
       .map(p => p.trim())

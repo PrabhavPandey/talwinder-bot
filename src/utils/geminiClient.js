@@ -25,11 +25,28 @@ class GeminiClient {
   convertMessagesToGeminiFormat(messages) {
     const converted = messages.map(msg => {
       if (msg.role === 'user') {
-        const textContent = typeof msg.content === 'string' ? msg.content :
-          (Array.isArray(msg.content) ? msg.content.filter(p => p.type === 'text').map(p => p.text).join('\n') : JSON.stringify(msg.content));
+        const parts = [];
+        if (typeof msg.content === 'string') {
+          parts.push({ text: msg.content });
+        } else if (Array.isArray(msg.content)) {
+          msg.content.forEach(p => {
+            if (p.type === 'text') {
+              parts.push({ text: p.text });
+            } else if (p.type === 'image') {
+              parts.push({
+                inlineData: {
+                  data: p.data,
+                  mimeType: p.mimeType
+                }
+              });
+            }
+          });
+        } else {
+          parts.push({ text: JSON.stringify(msg.content) });
+        }
         return {
           role: 'user',
-          parts: [{ text: textContent }]
+          parts: parts
         };
       } else if (msg.role === 'assistant') {
         const parts = [];
@@ -129,11 +146,28 @@ class GeminiClient {
 
       const history = this.convertMessagesToGeminiFormat(messages.slice(0, -1));
       const lastMessage = messages[messages.length - 1];
-      const lastText = typeof lastMessage.content === 'string' ? lastMessage.content :
-        (Array.isArray(lastMessage.content) ? lastMessage.content.find(p => p.type === 'text')?.text || "" : "");
+      let lastParts = [];
+      if (typeof lastMessage.content === 'string') {
+        lastParts = [{ text: lastMessage.content }];
+      } else if (Array.isArray(lastMessage.content)) {
+        lastParts = lastMessage.content.map(p => {
+          if (p.type === 'text') return { text: p.text };
+          if (p.type === 'image') return { inlineData: { data: p.data, mimeType: p.mimeType } };
+          return null;
+        }).filter(Boolean);
+      } else {
+        lastParts = [{ text: JSON.stringify(lastMessage.content) }];
+      }
 
-      const chat = model.startChat({ history, generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 } });
-      const result = await chat.sendMessage(lastText || "hello");
+      const chat = model.startChat({
+        history,
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+          temperature: 0.7
+        }
+      });
+
+      const result = await chat.sendMessage(lastParts.length > 0 ? lastParts : [{ text: "hello" }]);
 
       const { content, stopReason } = this._extractResponseParts(result.response);
       return { content, stopReason, _chatInstance: chat };
