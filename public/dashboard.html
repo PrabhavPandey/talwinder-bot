@@ -11,58 +11,84 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --border-color: #f1f1f1;
+      --subtle-bg: #fafafa;
+      --muted-text: #6b7280;
+    }
+
+    .dark {
+      --bg-color: #000000;
+      --text-color: #ffffff;
+      --border-color: #222222;
+      --subtle-bg: #111111;
+      --muted-text: #9ca3af;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #ffffff;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .border-subtle {
-      border-color: #f1f1f1;
+      border-color: var(--border-color);
     }
 
     .bg-subtle {
-      background-color: #fafafa;
+      background-color: var(--subtle-bg);
+    }
+
+    .text-muted {
+      color: var(--muted-text);
     }
 
     select,
     input {
       outline: none;
       transition: all 0.2s;
+      background-color: var(--bg-color);
+      color: var(--text-color);
     }
 
     select:focus,
     input:focus {
-      border-color: #000;
+      border-color: var(--text-color);
     }
 
     .table-row:hover {
-      background-color: #fafafa;
+      background-color: var(--subtle-bg);
+    }
+
+    .sidebar-link.active {
+      background-color: var(--subtle-bg);
+      color: var(--text-color);
     }
   </style>
 </head>
 
-<body class="flex min-h-screen text-black">
+<body class="flex min-h-screen">
 
   <!-- Minimal Sidebar -->
-  <aside class="w-64 border-r border-subtle flex flex-col h-screen sticky top-0 bg-white z-10">
+  <aside
+    class="w-64 border-r border-subtle flex flex-col h-screen sticky top-0 bg-white dark:bg-black z-10 transition-colors">
     <div class="p-6">
       <div class="flex items-center gap-2 mb-10">
-        <div class="w-2 h-6 bg-black rounded-full"></div>
+        <div class="w-2 h-6 bg-black dark:bg-white rounded-full"></div>
         <span class="font-bold text-lg tracking-tight">talwinder</span>
       </div>
 
       <nav class="space-y-1">
-        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium bg-subtle rounded-md group">
-          <i data-lucide="layout-dashboard" class="w-4 h-4 text-black"></i>
+        <a href="#" onclick="showSection('overview')" id="nav-overview"
+          class="sidebar-link active flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md group transition-all">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
           overview
         </a>
-        <a href="#"
-          class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-400 hover:text-black hover:bg-subtle rounded-md transition-all">
-          <i data-lucide="lightbulb" class="w-4 h-4"></i>
-          idea repository
-        </a>
-        <a href="#"
-          class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-400 hover:text-black hover:bg-subtle rounded-md transition-all">
+        <a href="#" onclick="showSection('settings')" id="nav-settings"
+          class="sidebar-link flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-400 hover:text-black dark:hover:text-white rounded-md transition-all">
           <i data-lucide="settings" class="w-4 h-4"></i>
           settings
         </a>
@@ -71,310 +97,194 @@
 
     <div class="mt-auto p-6 border-t border-subtle">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">AD</div>
+        <div class="w-8 h-8 rounded-full bg-subtle flex items-center justify-center text-[10px] font-bold">AD</div>
         <div class="flex-1 min-w-0">
           <p class="text-xs font-semibold">admin</p>
-          <p class="text-[10px] text-gray-400 uppercase tracking-widest">grapevine base</p>
+          <p class="text-[10px] text-muted uppercase tracking-widest">grapevine base</p>
         </div>
       </div>
     </div>
   </aside>
 
-  <!-- Main Content -->
-  <main class="flex-1 p-10 max-w-6xl mx-auto">
-    <header class="mb-12 flex justify-between items-end">
-      <div>
-        <h1 class="text-3xl font-bold tracking-tight mb-2">operational stats</h1>
-        <p class="text-gray-500 text-sm">performance metrics and idea pipeline for grapevine saarthi.</p>
-      </div>
-      <div class="flex items-center gap-4">
-        <button onclick="generateReport()"
-          class="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-gray-800 transition-all">
-          <i data-lucide="file-text" class="w-4 h-4"></i>
-          generate report
-        </button>
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 overflow-y-auto">
+    <!-- Overview Section -->
+    <main id="section-overview" class="p-10 max-w-6xl mx-auto">
+      <header class="mb-12 flex justify-between items-end">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight mb-2">operational stats</h1>
+          <p class="text-muted text-sm">performance metrics and idea pipeline for grapevine saarthi.</p>
+        </div>
         <div class="text-[10px] uppercase font-bold text-gray-300 tracking-[0.2em]">last updated: now</div>
-      </div>
-    </header>
+      </header>
 
-    <!-- Report Modal -->
-    <div id="reportModal" class="fixed inset-0 bg-white/95 z-50 hidden overflow-y-auto backdrop-blur-sm">
-      <!-- ... existing report modal content ... -->
-    </div>
-
-    <!-- Idea Details Modal -->
-    <div id="ideaModal" class="fixed inset-0 bg-white/98 z-50 hidden overflow-y-auto backdrop-blur-md">
-      <div class="max-w-3xl mx-auto py-20 px-10">
-        <div class="flex justify-between items-start mb-10 pb-6 border-b border-subtle">
-          <div>
-            <h2 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">idea details</h2>
-            <h1 id="modalIdeaCategory" class="text-2xl font-bold tracking-tight">category</h1>
+      <!-- Key Metrics Grid -->
+      <div class="grid grid-cols-3 gap-6 mb-12" id="statsGrid">
+        <div class="border border-subtle p-6 rounded-2xl relative overflow-hidden">
+          <div class="text-[9px] font-bold uppercase tracking-widest text-muted mb-4">onboarded users</div>
+          <div class="text-4xl font-bold mb-1" id="onboardedUsers">-</div>
+          <div class="text-[10px] text-muted flex items-center gap-1">
+            <i data-lucide="check-circle-2" class="w-3 h-3 text-green-500"></i>
+            <span id="successRate">0% success rate</span>
           </div>
-          <button onclick="closeIdeaModal()" class="p-2 hover:bg-subtle rounded-full transition-all">
-            <i data-lucide="x" class="w-6 h-6"></i>
-          </button>
+          <div class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-1000" id="successBar"
+            style="width: 0%"></div>
         </div>
 
-        <div class="space-y-12">
-          <section>
-            <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">the idea</h3>
-            <p id="modalIdeaContent" class="text-xl font-medium leading-relaxed italic text-gray-800"></p>
-          </section>
-
-          <section id="modalImageSection" class="hidden">
-            <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">supporting image</h3>
-            <img id="modalIdeaImage" class="w-full rounded-2xl border border-subtle shadow-2xl" src=""
-              alt="Idea Attachment">
-          </section>
-
-          <section>
-            <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">context / about</h3>
-            <p id="modalIdeaContext" class="text-sm text-gray-500 leading-relaxed"></p>
-          </section>
-
-          <div class="pt-10 border-t border-subtle flex justify-between items-center">
-            <div>
-              <p class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-300">submitted by</p>
-              <p id="modalIdeaUser" class="text-xs font-bold"></p>
-            </div>
-            <div>
-              <p class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-300">locked on</p>
-              <p id="modalIdeaDate" class="text-xs font-bold text-gray-400"></p>
-            </div>
+        <div class="border border-subtle p-6 rounded-2xl">
+          <div class="text-[9px] font-bold uppercase tracking-widest text-muted mb-4">ideas submitted</div>
+          <div class="text-4xl font-bold mb-1" id="totalIdeas">-</div>
+          <div class="text-[10px] text-muted flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i>
+            <span id="velocityCount">+0 this week</span>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Key Metrics Grid -->
-    <div class="grid grid-cols-4 gap-6 mb-12" id="statsGrid">
-      <div class="border border-subtle p-6 rounded-2xl relative overflow-hidden">
-        <div class="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">onboarded users</div>
-        <div class="text-4xl font-bold mb-1" id="onboardedUsers">-</div>
-        <div class="text-[10px] text-gray-400 flex items-center gap-1">
-          <i data-lucide="check-circle-2" class="w-3 h-3 text-green-500"></i>
-          <span id="successRate">0% success rate</span>
-        </div>
-        <div class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-1000" id="successBar"
-          style="width: 0%"></div>
-      </div>
-
-      <div class="border border-subtle p-6 rounded-2xl">
-        <div class="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">ideas submitted</div>
-        <div class="text-4xl font-bold mb-1" id="totalIdeas">-</div>
-        <div class="text-[10px] text-gray-400 flex items-center gap-1">
-          <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i>
-          <span id="velocityCount">+0 this week</span>
+        <div class="border border-subtle p-6 rounded-2xl">
+          <div class="text-[9px] font-bold uppercase tracking-widest text-muted mb-4">total messages</div>
+          <div class="text-4xl font-bold mb-1" id="totalMessages">-</div>
+          <div class="text-[10px] text-muted uppercase tracking-widest">engagement volume</div>
         </div>
       </div>
 
-      <div class="border border-subtle p-6 rounded-2xl">
-        <div class="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">total messages</div>
-        <div class="text-4xl font-bold mb-1" id="totalMessages">-</div>
-        <div class="text-[10px] text-gray-400 uppercase tracking-widest">engagement volume</div>
-      </div>
-
-      <div class="border border-subtle p-6 rounded-2xl bg-black text-white">
-        <div class="text-gray-600 text-[9px] font-bold uppercase tracking-widest mb-4">sponsored</div>
-        <div class="text-4xl font-bold mb-1" id="sponsoredIdeas">-</div>
-        <div class="text-[10px] text-gray-500 uppercase tracking-widest">pipeline ready</div>
-      </div>
-    </div>
-
-    <!-- Secondary Insights Section -->
-    <div class="grid grid-cols-12 gap-8 mb-12">
-      <!-- Leaderboard -->
-      <section class="col-span-4 border border-subtle rounded-2xl p-6">
-        <h2 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
-          <i data-lucide="medal" class="w-3 h-3"></i>
-          top contributors
-        </h2>
-        <div id="leaderboardList" class="space-y-4">
-          <!-- Leaderboard items -->
-        </div>
-      </section>
-
-      <!-- Search & Quick Filters -->
-      <section class="col-span-8 flex flex-col justify-end">
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div class="col-span-2 relative">
+      <!-- Filters Section -->
+      <div class="mb-12">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="flex-1 relative">
             <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-gray-400"></i>
             <input type="text" id="userSearch" class="w-full border border-subtle pl-10 pr-4 py-2.5 rounded-xl text-sm"
               placeholder="search contributors by name or phone..." oninput="fetchIdeas()">
           </div>
-          <select id="statusFilter" class="border border-subtle px-4 py-2.5 rounded-xl text-sm bg-white font-medium"
-            onchange="fetchIdeas()">
-            <option value="">all statuses</option>
-            <option value="sponsored">sponsored</option>
-            <option value="evaluating">evaluating</option>
-            <option value="pending">pending</option>
-            <option value="rejected">rejected</option>
-          </select>
+          <div class="flex gap-2">
+            <button onclick="setStatus('')"
+              class="status-btn active text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-xl border border-subtle hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">all</button>
+            <button onclick="setStatus('captured')"
+              class="status-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-xl border border-subtle hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">captured</button>
+            <button onclick="setStatus('evaluating')"
+              class="status-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-xl border border-subtle hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">evaluating</button>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <button onclick="setStatus('')"
-            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-black hover:text-white transition-all">all</button>
-          <button onclick="setStatus('sponsored')"
-            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-green-500 hover:text-white transition-all">sponsored</button>
-          <button onclick="setStatus('evaluating')"
-            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-orange-500 hover:text-white transition-all">evaluating</button>
-          <button onclick="setStatus('pending')"
-            class="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border border-subtle hover:bg-blue-500 hover:text-white transition-all">pending</button>
+      </div>
+
+      <!-- Repository Table -->
+      <section class="border border-subtle rounded-2xl overflow-hidden shadow-sm">
+        <div class="p-4 bg-subtle border-b border-subtle flex justify-between items-center">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-muted">contribution repository</span>
+          <span class="text-[10px] font-bold text-gray-300" id="itemCount">0 ideas found</span>
+        </div>
+        <table class="w-full text-left text-sm">
+          <thead class="bg-white dark:bg-black text-muted font-medium border-b border-subtle">
+            <tr>
+              <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Submitted On</th>
+              <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Contributor</th>
+              <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Function</th>
+              <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">The Idea</th>
+              <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Image</th>
+              <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Context</th>
+            </tr>
+          </thead>
+          <tbody id="ideasGrid" class="divide-y divide-subtle">
+            <!-- Ideas injected here -->
+          </tbody>
+        </table>
+        <div id="noIdeasPlaceholder" class="hidden py-20 text-center text-gray-300 text-xs uppercase tracking-[0.2em]">
+          empty repository
         </div>
       </section>
+    </main>
+
+    <!-- Settings Section -->
+    <main id="section-settings" class="p-10 max-w-3xl mx-auto hidden">
+      <header class="mb-12">
+        <h1 class="text-3xl font-bold tracking-tight mb-2">settings</h1>
+        <p class="text-muted text-sm">configure your dashboard experience.</p>
+      </header>
+
+      <section class="space-y-8">
+        <div class="border border-subtle p-6 rounded-2xl flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm">dark mode</h3>
+            <p class="text-muted text-xs">toggle between light and dark themes.</p>
+          </div>
+          <button id="themeToggle" onclick="toggleTheme()"
+            class="w-12 h-6 rounded-full bg-gray-200 dark:bg-gray-800 relative transition-all duration-300">
+            <div id="themeDot"
+              class="w-4 h-4 rounded-full bg-white dark:bg-black absolute top-1 left-1 dark:left-7 transition-all duration-300">
+            </div>
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Idea Details Modal -->
+  <div id="ideaModal"
+    class="fixed inset-0 bg-white/98 dark:bg-black/98 z-50 hidden overflow-y-auto backdrop-blur-md transition-all">
+    <div class="max-w-3xl mx-auto py-20 px-10">
+      <div class="flex justify-between items-start mb-10 pb-6 border-b border-subtle">
+        <div>
+          <h2 class="text-[10px] font-bold uppercase tracking-widest text-muted mb-2">idea details</h2>
+          <h1 id="modalIdeaCategory" class="text-2xl font-bold tracking-tight">category</h1>
+        </div>
+        <button onclick="closeIdeaModal()" class="p-2 hover:bg-subtle rounded-full transition-all">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <div class="space-y-12">
+        <section>
+          <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-muted mb-4">the idea</h3>
+          <p id="modalIdeaContent" class="text-xl font-medium leading-relaxed italic text-gray-800 dark:text-gray-200">
+          </p>
+        </section>
+
+        <section id="modalImageSection" class="hidden">
+          <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-muted mb-4">supporting image</h3>
+          <img id="modalIdeaImage" class="w-full rounded-2xl border border-subtle shadow-2xl" src=""
+            alt="Idea Attachment">
+        </section>
+
+        <section>
+          <h3 class="text-[9px] font-bold uppercase tracking-[0.2em] text-muted mb-4">context / about</h3>
+          <p id="modalIdeaContext" class="text-sm text-muted leading-relaxed"></p>
+        </section>
+
+        <div class="pt-10 border-t border-subtle flex justify-between items-center">
+          <div>
+            <p class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-300">submitted by</p>
+            <p id="modalIdeaUser" class="text-xs font-bold"></p>
+          </div>
+          <div>
+            <p class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-300">locked on</p>
+            <p id="modalIdeaDate" class="text-xs font-bold text-muted"></p>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Repository Table -->
-    <section class="border border-subtle rounded-2xl overflow-hidden shadow-sm">
-      <div class="p-4 bg-subtle border-b border-subtle flex justify-between items-center">
-        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">contribution repository</span>
-        <span class="text-[10px] font-bold text-gray-300" id="itemCount">0 ideas found</span>
-      </div>
-      <table class="w-full text-left text-sm">
-        <thead class="bg-white text-gray-400 font-medium border-b border-subtle">
-          <tr>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Submitted On</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Function</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">The Idea</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">Supporting Image</th>
-            <th class="px-6 py-4 font-bold uppercase text-[9px] tracking-widest">About / Context</th>
-          </tr>
-        </thead>
-        <tbody id="ideasGrid" class="divide-y divide-subtle">
-          <!-- Ideas injected here -->
-        </tbody>
-      </table>
-      <div id="noIdeasPlaceholder" class="hidden py-20 text-center text-gray-300 text-xs uppercase tracking-[0.2em]">
-        empty repository
-      </div>
-    </section>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    let currentReportCharts = [];
+    let currentStatus = '';
 
-    function closeReport() {
-      document.getElementById('reportModal').classList.add('hidden');
-      document.body.style.overflow = 'auto';
+    function showSection(id) {
+      document.querySelectorAll('main[id^="section-"]').forEach(s => s.classList.add('hidden'));
+      document.getElementById(`section-${id}`).classList.remove('hidden');
+      
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      document.getElementById(`nav-${id}`).classList.add('active');
+      lucide.createIcons(); // Re-render icons for the newly visible section
     }
 
-    async function generateReport() {
-      const modal = document.getElementById('reportModal');
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-
-      try {
-        const res = await fetch('/api/dashboard/report');
-        const data = await res.json();
-        if (data.success) {
-          renderReport(data.report);
-        }
-      } catch (err) { console.error('Report generation error:', err); }
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
     }
 
-    function renderReport(report) {
-      document.getElementById('reportDate').textContent = `generated on ${new Date(report.generatedAt).toLocaleString()} for grapevine innovation board`;
-
-      // Render Metrics
-      const mContainer = document.getElementById('reportMetrics');
-      const metrics = [
-        { label: 'total ideas', val: report.metrics.total },
-        { label: 'avg utility', val: report.metrics.avgUtility },
-        { label: 'avg novelty', val: report.metrics.avgNovelty }
-      ];
-      mContainer.innerHTML = metrics.map(m => `
-        <div class="border border-subtle p-8 rounded-3xl">
-          <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-2">${m.label}</p>
-          <p class="text-4xl font-bold">${m.val}</p>
-        </div>
-      `).join('');
-
-      // Render Ideas sorted by priority/utility
-      const list = document.getElementById('reportIdeaList');
-      list.innerHTML = report.ideas.map(i => `
-        <div class="border border-subtle p-8 rounded-3xl hover:bg-subtle transition-all duration-300">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <p class="text-[8px] font-bold uppercase tracking-widest text-gray-400 mb-1">${i.category} / by ${i.user}</p>
-              <h4 class="text-lg font-bold tracking-tight">${i.title || 'Untitled Idea'}</h4>
-            </div>
-            <span class="text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${i.priority === 'critical' ? 'bg-black text-white' : 'bg-subtle text-gray-500'}">
-              ${i.priority}
-            </span>
-          </div>
-          <p class="text-sm text-gray-600 mb-6 leading-relaxed">${i.description}</p>
-          <div class="flex gap-10">
-            <div>
-              <p class="text-[7px] font-bold uppercase tracking-widest text-gray-300 mb-1">utility</p>
-              <p class="text-xs font-bold">${i.utility}/5</p>
-            </div>
-            <div>
-              <p class="text-[7px] font-bold uppercase tracking-widest text-gray-300 mb-1">novelty</p>
-              <p class="text-xs font-bold">${i.novelty}/5</p>
-            </div>
-            <div>
-              <p class="text-[7px] font-bold uppercase tracking-widest text-gray-300 mb-1">suggested sponsor</p>
-              <p class="text-xs font-bold">${i.suggestedSponsor || 'TBD'}</p>
-            </div>
-          </div>
-        </div>
-      `).join('');
-
-      // Charts
-      renderCharts(report);
-      lucide.createIcons();
-    }
-
-    function renderCharts(report) {
-      currentReportCharts.forEach(c => c.destroy());
-      currentReportCharts = [];
-
-      const catCounts = {};
-      const prioCounts = {};
-
-      report.ideas.forEach(i => {
-        catCounts[i.category] = (catCounts[i.category] || 0) + 1;
-        prioCounts[i.priority] = (prioCounts[i.priority] || 0) + 1;
-      });
-
-      const ctx1 = document.getElementById('categoryChart').getContext('2d');
-      const chart1 = new Chart(ctx1, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(catCounts),
-          datasets: [{
-            data: Object.values(catCounts),
-            backgroundColor: ['#000', '#222', '#444', '#666', '#888', '#aaa'],
-            borderWidth: 0
-          }]
-        },
-        options: { plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
-      });
-      currentReportCharts.push(chart1);
-
-      const ctx2 = document.getElementById('priorityChart').getContext('2d');
-      const chart2 = new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(prioCounts),
-          datasets: [{
-            data: Object.values(prioCounts),
-            backgroundColor: '#000',
-            barThickness: 20
-          }]
-        },
-        options: {
-          scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } },
-          plugins: { legend: { display: false } }
-        }
-      });
-      currentReportCharts.push(chart2);
-    }
-
-    function setStatus(val) {
-      document.getElementById('statusFilter').value = val;
-      fetchIdeas();
+    // Initialize theme
+    if (localStorage.getItem('theme') === 'dark' || 
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.body.classList.add('dark');
     }
 
     async function fetchStats() {
@@ -384,52 +294,18 @@
         if (data.success) {
           const s = data.stats;
           document.getElementById('totalIdeas').textContent = s.total;
-          document.getElementById('sponsoredIdeas').textContent = s.sponsored;
           document.getElementById('onboardedUsers').textContent = s.usersOnboarded;
           document.getElementById('totalMessages').textContent = s.messages;
-          document.getElementById('successRate').textContent = `${s.successRate}% success rate`;
-          document.getElementById('successBar').style.width = `${s.successRate}%`;
-          document.getElementById('velocityCount').textContent = `+${s.velocity} this week`;
-
-          renderLeaderboard(s.topContributors);
+          document.getElementById('successRate').textContent = `${s.successRate || 0}% success rate`;
+          document.getElementById('successBar').style.width = `${s.successRate || 0}%`;
+          document.getElementById('velocityCount').textContent = `+${s.velocity || 0} this week`;
         }
       } catch (err) { console.error('Stats fetch error:', err); }
     }
 
-    function renderLeaderboard(contributors) {
-      const el = document.getElementById('leaderboardList');
-      el.innerHTML = '';
-
-      if (!contributors || contributors.length === 0) {
-        el.innerHTML = '<p class="text-[10px] text-gray-300 uppercase tracking-widest">no contributors yet</p>';
-        return;
-      }
-
-      contributors.forEach((c, i) => {
-        const rank = i + 1;
-        const item = document.createElement('div');
-        item.className = 'flex items-center justify-between group cursor-default';
-        item.innerHTML = `
-          <div class="flex items-center gap-3">
-            <span class="text-[10px] font-bold text-gray-200">0${rank}</span>
-            <div>
-              <p class="text-xs font-bold text-black">${c.name}</p>
-              <p class="text-[9px] text-gray-400 lowercase">${c.totalIdeas} ideas submitted</p>
-            </div>
-          </div>
-          <div class="text-[10px] font-bold bg-subtle px-2 py-1 rounded-lg">
-            ${c.averageIdeaQuality.toFixed(1)}
-          </div>
-        `;
-        el.appendChild(item);
-      });
-    }
-
     async function fetchIdeas() {
-      const status = document.getElementById('statusFilter').value;
       const user = document.getElementById('userSearch').value;
-
-      let url = `/api/dashboard/ideas?status=${status}&user=${user}`;
+      const url = `/api/dashboard/ideas?status=${currentStatus}&user=${user}`;
 
       try {
         const res = await fetch(url);
@@ -452,37 +328,48 @@
         row.className = 'table-row transition-all duration-200 hover:bg-subtle/50 cursor-pointer';
         row.onclick = () => showIdeaModal(idea);
 
-        const statusColors = {
-          'sponsored': 'text-green-600',
-          'evaluating': 'text-orange-500',
-          'pending': 'text-blue-500',
-          'rejected': 'text-gray-400'
-        };
-
         row.innerHTML = `
           <td class="px-6 py-6 border-b border-subtle/30">
-            <p class="font-bold text-xs text-black">${new Date(idea.createdAt).toLocaleString()}</p>
-            <p class="text-[9px] text-gray-400 mt-1">by ${idea.user.name}</p>
+            <p class="font-bold text-xs">${new Date(idea.createdAt).toLocaleDateString()}</p>
           </td>
           <td class="px-6 py-6 border-b border-subtle/30">
-            <span class="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-800 border border-subtle px-2 py-1 bg-gray-50 rounded-md">
+            <p class="text-xs font-bold">${idea.user.name}</p>
+            <p class="text-[9px] text-muted">${idea.user.phoneNumber}</p>
+          </td>
+          <td class="px-6 py-6 border-b border-subtle/30">
+            <span class="text-[8px] font-bold uppercase tracking-[0.1em] border border-subtle px-2 py-1 bg-subtle rounded-md">
               ${idea.category}
             </span>
           </td>
           <td class="px-6 py-6 max-w-sm border-b border-subtle/30">
-            <p class="text-xs text-black font-semibold line-clamp-3">${idea.refinedDescription || idea.rawDescription}</p>
+            <p class="text-xs font-semibold line-clamp-2">${idea.refinedDescription || idea.rawDescription}</p>
           </td>
           <td class="px-6 py-6 border-b border-subtle/30">
-            ${idea.imageDataUri ? "<img src='" + idea.imageDataUri + "' class='w-16 h-16 object-cover border border-subtle rounded-md shadow-sm' />" : '<span class="text-[10px] text-gray-300 italic">none</span>'}
+            ${idea.imageDataUri ? "<img src='" + idea.imageDataUri + "' class='w-10 h-10 object-cover border border-subtle rounded-md shadow-sm' />" : '<span class="text-[10px] text-gray-300 italic">none</span>'}
           </td>
-          <td class="px-6 py-6 max-w-sm border-b border-subtle/30">
-            <p class="text-[10px] text-gray-500 line-clamp-3">${idea.imageContext || idea.rawDescription || '-'}</p>
+          <td class="px-6 py-6 max-w-xs border-b border-subtle/30">
+            <p class="text-[10px] text-muted line-clamp-2">${idea.imageContext || '-'}</p>
           </td>
         `;
 
         grid.appendChild(row);
       });
       lucide.createIcons();
+    }
+
+    function setStatus(val) {
+      currentStatus = val;
+      document.querySelectorAll('.status-btn').forEach(b => {
+        b.classList.remove('active');
+        b.classList.remove('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+        b.classList.add('hover:bg-black', 'hover:text-white', 'dark:hover:bg-white', 'dark:hover:text-black');
+      });
+      const activeBtn = Array.from(document.querySelectorAll('.status-btn')).find(b => b.textContent.toLowerCase() === (val || 'all'));
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+        activeBtn.classList.remove('hover:bg-black', 'hover:text-white', 'dark:hover:bg-white', 'dark:hover:text-black');
+      }
+      fetchIdeas();
     }
 
     function showIdeaModal(idea) {
@@ -511,9 +398,11 @@
       document.body.style.overflow = 'auto';
     }
 
-    fetchStats();
-    fetchIdeas();
-    lucide.createIcons();
+    window.onload = () => {
+      fetchStats();
+      setStatus(''); // Initialize status and fetch ideas
+      lucide.createIcons();
+    };
   </script>
 </body>
 
