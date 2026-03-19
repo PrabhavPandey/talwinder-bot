@@ -7,31 +7,12 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/whatsapp/(.*)",
-      "dest": "src/app.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "src/app.js"
-    },
-    {
-      "src": "/health",
-      "dest": "src/app.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "public/$1"
-    },
-    {
-      "src": "/",
-      "dest": "src/app.js"
-    }
+  "rewrites": [
+    { "source": "/whatsapp/:match*", "destination": "src/app.js" },
+    { "source": "/api/:match*", "destination": "src/app.js" },
+    { "source": "/health", "destination": "src/app.js" },
+    { "source": "/", "destination": "src/app.js" }
   ],
-  "env": {
-    "NODE_ENV": "production"
-  },
   "crons": [
     {
       "path": "/api/cron",
