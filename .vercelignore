@@ -1,0 +1,6 @@
+logs/
+test-*.js
+nodemon.json
+README.md
+SETUP_GUIDE.md
+.env.example
