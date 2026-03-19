@@ -23,7 +23,16 @@ Talwinder is an AI-powered WhatsApp chatbot designed for Grapevine's internal us
 1.  **Clone the repo**.
 2.  **Install dependencies**: `npm install`
 3.  **Setup Environment**: Copy `.env.example` to `.env` and fill in your keys.
-4.  **Migrate Database**: `npm run db:migrate`
-5.  **Start the bot**: `npm run dev`
+4.  **Sync Database**: `npm run db:sync` (Run once or after model changes)
+5.  **Start the bot**: `npm run dev` (Now faster with optimized restart)
 
-For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md).
+## Hosting on Vercel
+
+The bot is fully ready for Vercel:
+1. Push your code to a GitHub repo.
+2. Connect the repo to Vercel.
+3. Add your Environment Variables (from your `.env`) in Vercel Dashboard.
+4. Set `CRON_SECRET` for secure daily processing.
+
+The `vercel.json` and updated `src/app.js` handle the serverless transition automatically.
+

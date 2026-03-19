@@ -3,21 +3,28 @@ const path = require('path');
 const logger = require('../utils/logger');
 
 const dbUrl = process.env.DATABASE_URL;
-const isProduction = process.env.NODE_ENV === 'production';
-const isNeon = dbUrl && dbUrl.includes('neon.tech');
+const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+const isNeon = dbUrl && (dbUrl.includes('neon.tech') || dbUrl.includes('neon.github.io'));
+
+// Performance tuning for serverless functions (Vercel)
+const poolConfig = isProduction 
+  ? { max: 2, min: 1, idle: 5000, acquire: 30000 } 
+  : { max: 10, min: 0, idle: 10000 };
+
+const dbOptions = {
+  logging: false,
+  pool: poolConfig,
+  dialectOptions: {
+    ssl: (isProduction || isNeon) ? {
+      require: true,
+      rejectUnauthorized: false,
+      ca: null
+    } : false
+  }
+};
 
 const sequelize = dbUrl 
-  ? new Sequelize(dbUrl, {
-      logging: false,
-      dialectOptions: {
-        // NeonDB requires SSL connection. Updated to verify-full to silence warning.
-        ssl: (isProduction || isNeon) ? {
-          require: true,
-          rejectUnauthorized: false,
-          ca: null // Silence the 'verify-full' alias warning
-        } : false
-      }
-    })
+  ? new Sequelize(dbUrl, dbOptions)
   : new Sequelize(
       process.env.DB_NAME,
       process.env.DB_USER,
@@ -26,7 +33,7 @@ const sequelize = dbUrl
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: 'postgres',
-        logging: false
+        ...dbOptions
       }
     );
 

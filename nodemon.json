@@ -1,0 +1,6 @@
+{
+  "ignore": ["node_modules/", "logs/", "public/", "test-*.js", ".git/"],
+  "ext": "js,json",
+  "delay": "500",
+  "legacyWatch": false
+}

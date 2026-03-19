@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
+    "dev": "NODE_ENV=development nodemon src/app.js",
+    "db:sync": "node -e 'require(\"./src/models\").sequelize.sync({ alter: true }).then(() => process.exit())'",
     "db:migrate": "node src/utils/migrate.js"
   },
   "dependencies": {
