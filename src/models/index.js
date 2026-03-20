@@ -12,6 +12,7 @@ const poolConfig = isProduction
   : { max: 10, min: 0, idle: 10000 };
 
 const dbOptions = {
+  dialectModule: require('pg'),
   logging: false,
   pool: poolConfig,
   dialectOptions: {
