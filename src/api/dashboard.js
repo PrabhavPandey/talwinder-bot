@@ -3,16 +3,11 @@ const router = express.Router();
 const db = require('../models');
 const ideaService = require('../services/ideaService');
 
-// GET /api/dashboard/ideas?status=captured&category=growth&user=tanmay
+// GET /api/dashboard/ideas?sort=desc&category=growth&user=tanmay
 router.get('/ideas', async (req, res) => {
-  const { status, category, user: userQuery } = req.query;
-  const where = {};
+  const { sort, category, user: userQuery } = req.query;
+  const where = { status: 'captured' }; // Always only show captured ideas now
 
-  if (status) {
-    where.status = status;
-  } else {
-    where.status = 'captured'; // Do not show 'evaluating' drafts by default
-  }
   if (category) where.category = category;
 
   const userInclude = {
@@ -30,6 +25,9 @@ router.get('/ideas', async (req, res) => {
     };
   }
 
+  // Handle sort order
+  const orderDirection = sort === 'asc' ? 'ASC' : 'DESC';
+
   try {
     const ideas = await db.Idea.findAll({
       where,
@@ -38,7 +36,7 @@ router.get('/ideas', async (req, res) => {
         'id', 'rawDescription', 'refinedDescription',
         'imageContext', 'imageBase64', 'category', 'status', 'createdAt'
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', orderDirection]]
     });
 
     // Handle image rendering: move to data URI if present
